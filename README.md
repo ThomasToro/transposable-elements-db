@@ -10,7 +10,7 @@ de cada especie y sus perfiles de k-mers (k = 1 a 6).
 | Integrante | Responsabilidad principal |
 | --- | --- |
 | Thomas | Modelo de datos, entorno y repositorio, limpieza del FASTA, carga de `tes` y `secuencias`, benchmark de consultas e índices |
-| Juan Arias | Limpieza del CSV, carga de `especies`, cruce FASTA–CSV, cálculo y carga de k-mers, benchmark de carga y espacio |
+| Juan Arias | Exploración del CSV en `00_exploracion_csv.ipynb` y, con la lista de especies del FASTA (`resultados/especies_fasta.csv`), el cruce | Solo para el cruce |
 | Juan Hernandez | Consultas 1–9, 12–15 y las dos consultas propias |
 | Isabela Murillo | Figuras, bibliotecas `.fasta` (consultas 10 y 11) y base del artículo |
 
@@ -161,7 +161,9 @@ En Windows, descárguenlos desde la página de Zenodo y muévanlos a `data/`. De
 
 ## Orden de ejecución
 
-Para reconstruir la base desde cero, ejecuten los notebooks en este orden:
+Este orden aplica para reconstruir el proyecto completo desde cero, una vez terminados los notebooks
+(por ejemplo, para verificar la reproducibilidad antes de entregar). Mientras se trabaja no hace falta
+seguirlo: cada integrante avanza en su notebook en paralelo, usando los datos de prueba o los dumps.
 
 | # | Notebook | Qué hace | Responsable |
 | --- | --- | --- | --- |
