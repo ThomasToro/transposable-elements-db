@@ -1,0 +1,12 @@
+name: panteon
+channels:
+  - conda-forge
+dependencies:
+  - python=3.11
+  - jupyter
+  - pandas
+  - numpy
+  - biopython
+  - pymongo
+  - matplotlib
+  - seaborn

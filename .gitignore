@@ -1,0 +1,27 @@
+# Datos originales (se descargan de Zenodo)
+data/*
+!data/.gitkeep
+
+# Dumps de MongoDB (se comparten por Google Drive)
+dump/
+*.archive
+
+# Jupyter y Python
+.ipynb_checkpoints/
+__pycache__/
+*.pyc
+
+# LaTeX (archivos temporales de compilación)
+articulo/*.aux
+articulo/*.log
+articulo/*.out
+articulo/*.bbl
+articulo/*.blg
+articulo/*.synctex.gz
+articulo/*.toc
+
+# Sistema operativo y editores
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
