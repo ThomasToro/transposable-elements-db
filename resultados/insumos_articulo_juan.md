@@ -101,49 +101,86 @@ La estimación supone que el resto del FASTA tiene una longitud media similar a 
 
 Base `panteon` (239.946 TEs). Estrategia principal: `panteon.kmers`; alternativa: `panteon_bench.tes_embebidos`.
 
-Tiempos de carga (s). Origen: `resultados/benchmark_carga.csv` (`notebooks/02_pipeline_fasta_tes.ipynb` y
-`notebooks/03_pipeline_kmers.ipynb`).
+Máquina de las mediciones. Origen: `resultados/especificaciones_maquina_juan.md` (generado por
+`scripts/specs_maquina.py`).
 
-| Estrategia | Base | n_tes | n_docs | t_calculo_s | t_insercion_s | t_indices_s | Total |
-| --- | --- | --- | --- | --- | --- | --- | --- |
-| coleccion_kmers | panteon | 239.946 | 1.439.676 | 123,379 | 49,782 | 25,079 | 198,240 |
-| embebido_en_tes | panteon_bench | 239.946 | 239.946 | 136,123 | 45,746 | 11,998 | 193,867 |
-| tes_y_secuencias (carga previa de `tes` y `secuencias`) | panteon | 239.946 | 479.892 | 2,131 | 3,875 | 0,559 | 6,565 |
+| Componente | Valor |
+| --- | --- |
+| CPU | Apple M5, 10 núcleos (4 de rendimiento + 6 de eficiencia) |
+| RAM | 24 GB |
+| Sistema operativo | macOS 27.0.1 |
+| Disco | SSD interno (APFS), 460,4 GB |
+| MongoDB | 7.0.45, WiredTiger, caché máxima 11,5 GB (valor por defecto) |
+| Python | 3.11.17; pymongo 4.19.0, numpy 2.4.6, pandas 3.1.0 |
+
+Repeticiones: la carga completa de ambas estrategias se repitió 3 veces (`REPETICIONES = 3` en
+`notebooks/03_pipeline_kmers.ipynb`), con el portátil conectado al cargador, otras aplicaciones cerradas
+(incluido Docker) y `caffeinate` activo. Cada repetición borra y recrea las colecciones. Se reporta la media ±
+desviación estándar muestral (n = 3). Las colecciones medidas en espacio son las de la última repetición.
+
+Validación: ambas estrategias se cargaron con validación de esquema (`$jsonSchema`, `validationLevel: strict`,
+`validationAction: error`): `kmers` con `ESQUEMA_KMERS` y `tes_embebidos` con el validador de `tes` más el
+perfil `kmers.k1`–`k6` (`ESQUEMA_TES_EMBEBIDOS`). Una serie anterior de 3 repeticiones se descartó porque
+`tes_embebidos` se había creado sin validador.
+
+Tiempos de carga por repetición (s). Origen: `resultados/benchmark_carga.csv`.
+
+| Estrategia | Repetición | t_calculo_s | t_insercion_s | t_indices_s | Total |
+| --- | --- | --- | --- | --- | --- |
+| coleccion_kmers | 1 | 123,129 | 49,927 | 22,374 | 195,430 |
+| coleccion_kmers | 2 | 126,995 | 50,252 | 21,590 | 198,837 |
+| coleccion_kmers | 3 | 126,352 | 50,351 | 22,098 | 198,801 |
+| embebido_en_tes | 1 | 125,410 | 47,953 | 11,696 | 185,059 |
+| embebido_en_tes | 2 | 126,150 | 47,948 | 14,596 | 188,694 |
+| embebido_en_tes | 3 | 125,877 | 47,833 | 13,015 | 186,725 |
+
+Media ± desviación estándar (s, n = 3). Origen: `notebooks/06_benchmark_carga_espacio.ipynb` (sección 1).
+
+| Estrategia | n_docs | Cálculo | Inserción | Índices | Total |
+| --- | --- | --- | --- | --- | --- |
+| coleccion_kmers (`panteon`) | 1.439.676 | 125,5 ± 2,1 | 50,2 ± 0,2 | 22,0 ± 0,4 | 197,7 ± 2,0 |
+| embebido_en_tes (`panteon_bench`) | 239.946 | 125,8 ± 0,4 | 47,9 ± 0,1 | 13,1 ± 1,5 | 186,8 ± 1,8 |
+
+Carga previa de `tes` y `secuencias` (una sola corrida, `notebooks/02_pipeline_fasta_tes.ipynb`): 479.892
+documentos; cálculo 2,131 s, inserción 3,875 s, índices 0,559 s, total 6,565 s.
 
 Espacio (bytes, `collStats`). Origen: `resultados/benchmark_espacio.csv` (`notebooks/06_benchmark_carga_espacio.ipynb`).
 
 | Estrategia | Colección | count | size | avgObjSize | storageSize | totalIndexSize |
 | --- | --- | --- | --- | --- | --- | --- |
-| coleccion_kmers | `panteon.kmers` | 1.439.676 | 8.144.577.956 | 5.657 | 3.180.089.344 | 60.604.416 |
-| embebido_en_tes | `panteon_bench.tes_embebidos` | 239.946 | 8.104.036.854 | 33.774 | 3.184.513.024 | 5.398.528 |
+| coleccion_kmers | `panteon.kmers` | 1.439.676 | 8.144.577.956 | 5.657 | 3.177.865.216 | 60.469.248 |
+| embebido_en_tes | `panteon_bench.tes_embebidos` | 239.946 | 8.104.036.854 | 33.774 | 3.184.594.944 | 5.435.392 |
 | referencia_tes | `panteon.tes` | 239.946 | 73.969.252 | 308 | 12.718.080 | 10.919.936 |
 
 Tamaño por índice (bytes). Origen: `resultados/benchmark_espacio.csv`.
 
 | Colección | Índice | Tamaño |
 | --- | --- | --- |
-| `kmers` | `_id` | 15.917.056 |
+| `kmers` | `_id` | 15.781.888 |
 | `kmers` | `{te_id: 1, k: 1}` único | 16.445.440 |
 | `kmers` | `{pdb_id: 1, k: 1}` | 20.344.832 |
 | `kmers` | `{k: 1, te_order: 1}` | 7.897.088 |
-| `tes_embebidos` | `_id` | 2.453.504 |
+| `tes_embebidos` | `_id` | 2.490.368 |
 | `tes_embebidos` | `{pdb_id: 1}` único | 2.945.024 |
 
 Cifras derivadas (calculadas de las tablas anteriores):
 
-- `storageSize`: `tes_embebidos` / `kmers` = 1,001 (4.423.680 bytes más en la embebida, que incluye una copia de `tes`).
-- `totalIndexSize`: `kmers` / `tes_embebidos` = 11,2.
-- Tiempo total de carga: `kmers` 198,2 s frente a embebida 193,9 s (diferencia de 2,2 %).
+- `storageSize`: `tes_embebidos` / `kmers` = 1,002 (6.729.728 bytes más en la embebida, que incluye una copia de `tes` de 12.718.080 bytes).
+- `totalIndexSize`: `kmers` / `tes_embebidos` = 11,1.
+- Tiempo total de carga: `kmers` 197,7 ± 2,0 s frente a embebida 186,8 ± 1,8 s (la embebida es 5,5 % más rápida).
+- De la diferencia (10,9 s), 8,9 s están en los índices y 2,3 s en la inserción; el cálculo es igual (125,5 frente a 125,8 s).
+- Respecto a la carga anterior, `size` y `count` son idénticos; `storageSize` y los índices `_id` varían unos pocos MB entre cargas.
 
-Figuras: `figuras/benchmark_carga_panteon.png` y `figuras/benchmark_espacio_panteon.png` (300 dpi).
+Figuras: `figuras/benchmark_carga_panteon.png` (media ± DE, barra de error sobre el total) y
+`figuras/benchmark_espacio_panteon.png` (300 dpi).
 Interpretación: última celda de `notebooks/06_benchmark_carga_espacio.ipynb`.
 
 Observaciones sobre la estimación previa:
 
 - El piloto con los primeros 5.000 TEs estimó 79 s de cálculo para la estrategia `kmers` (1,64 s × 239.946 / 5.000);
-  el real fue 123 s, porque los TEs posteriores son más largos que los primeros 5.000.
+  el real fue 125,5 ± 2,1 s, porque los TEs posteriores son más largos que los primeros 5.000.
 - La estimación del piloto (4,1 min para ambas estrategias) no incluía la creación de índices ni la verificación;
-  la ejecución completa de `notebooks/03_pipeline_kmers.ipynb` tardó unos 7 minutos.
+  la ejecución completa de `notebooks/03_pipeline_kmers.ipynb` tardó unos 7 minutos por repetición (19 min 59 s para las 3).
 
 ## 5. Decisiones de diseño (parte de Juan Arias)
 

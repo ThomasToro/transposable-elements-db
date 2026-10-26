@@ -1,6 +1,10 @@
-estrategia,base,n_tes,n_docs,t_calculo_s,t_insercion_s,t_indices_s
-coleccion_kmers,panteon_prueba,25,150,0.005,0.004,0.086
-embebido_en_tes,panteon_prueba_bench,25,25,0.005,0.006,0.036
-tes_y_secuencias,panteon,239946,479892,2.131,3.875,0.559
-coleccion_kmers,panteon,239946,1439676,123.379,49.782,25.079
-embebido_en_tes,panteon_bench,239946,239946,136.123,45.746,11.998
+estrategia,base,n_tes,n_docs,t_calculo_s,t_insercion_s,t_indices_s,repeticion
+coleccion_kmers,panteon_prueba,25,150,0.005,0.004,0.086,1
+embebido_en_tes,panteon_prueba_bench,25,25,0.005,0.006,0.036,1
+tes_y_secuencias,panteon,239946,479892,2.131,3.875,0.559,1
+coleccion_kmers,panteon,239946,1439676,123.129,49.927,22.374,1
+embebido_en_tes,panteon_bench,239946,239946,125.41,47.953,11.696,1
+coleccion_kmers,panteon,239946,1439676,126.995,50.252,21.59,2
+embebido_en_tes,panteon_bench,239946,239946,126.15,47.948,14.596,2
+coleccion_kmers,panteon,239946,1439676,126.352,50.351,22.098,3
+embebido_en_tes,panteon_bench,239946,239946,125.877,47.833,13.015,3
