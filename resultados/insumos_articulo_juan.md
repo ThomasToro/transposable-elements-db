@@ -87,25 +87,51 @@ La estimación supone que el resto del FASTA tiene una longitud media similar a 
 
 ## 4. Carga y espacio
 
-**Pendiente: ejecutar sobre `panteon`.** Las cifras actuales (`panteon_prueba`, 25 TEs) solo validan los
-notebooks y no se usan en el artículo.
+Base `panteon` (239.946 TEs). Estrategia principal: `panteon.kmers`; alternativa: `panteon_bench.tes_embebidos`.
 
-Tiempos de carga. Origen: `resultados/benchmark_carga.csv` (`notebooks/03_pipeline_kmers.ipynb`).
+Tiempos de carga (s). Origen: `resultados/benchmark_carga.csv` (`notebooks/02_pipeline_fasta_tes.ipynb` y
+`notebooks/03_pipeline_kmers.ipynb`).
 
-| Estrategia | Base | n_tes | n_docs | t_calculo_s | t_insercion_s | t_indices_s |
-| --- | --- | --- | --- | --- | --- | --- |
-| coleccion_kmers | panteon | | | | | |
-| embebido_en_tes | panteon_bench | | | | | |
+| Estrategia | Base | n_tes | n_docs | t_calculo_s | t_insercion_s | t_indices_s | Total |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| coleccion_kmers | panteon | 239.946 | 1.439.676 | 123,379 | 49,782 | 25,079 | 198,240 |
+| embebido_en_tes | panteon_bench | 239.946 | 239.946 | 136,123 | 45,746 | 11,998 | 193,867 |
+| tes_y_secuencias (carga previa de `tes` y `secuencias`) | panteon | 239.946 | 479.892 | 2,131 | 3,875 | 0,559 | 6,565 |
 
-Espacio. Origen: `resultados/benchmark_espacio.csv` (`notebooks/06_benchmark_carga_espacio.ipynb`).
+Espacio (bytes, `collStats`). Origen: `resultados/benchmark_espacio.csv` (`notebooks/06_benchmark_carga_espacio.ipynb`).
 
 | Estrategia | Colección | count | size | avgObjSize | storageSize | totalIndexSize |
 | --- | --- | --- | --- | --- | --- | --- |
-| coleccion_kmers | kmers | | | | | |
-| embebido_en_tes | tes_embebidos | | | | | |
-| referencia_tes | tes | | | | | |
+| coleccion_kmers | `panteon.kmers` | 1.439.676 | 8.144.577.956 | 5.657 | 3.180.089.344 | 60.604.416 |
+| embebido_en_tes | `panteon_bench.tes_embebidos` | 239.946 | 8.104.036.854 | 33.774 | 3.184.513.024 | 5.398.528 |
+| referencia_tes | `panteon.tes` | 239.946 | 73.969.252 | 308 | 12.718.080 | 10.919.936 |
 
-Figuras: `figuras/benchmark_carga_panteon.png`, `figuras/benchmark_espacio_panteon.png` (por generar).
+Tamaño por índice (bytes). Origen: `resultados/benchmark_espacio.csv`.
+
+| Colección | Índice | Tamaño |
+| --- | --- | --- |
+| `kmers` | `_id` | 15.917.056 |
+| `kmers` | `{te_id: 1, k: 1}` único | 16.445.440 |
+| `kmers` | `{pdb_id: 1, k: 1}` | 20.344.832 |
+| `kmers` | `{k: 1, te_order: 1}` | 7.897.088 |
+| `tes_embebidos` | `_id` | 2.453.504 |
+| `tes_embebidos` | `{pdb_id: 1}` único | 2.945.024 |
+
+Cifras derivadas (calculadas de las tablas anteriores):
+
+- `storageSize`: `tes_embebidos` / `kmers` = 1,001 (4.423.680 bytes más en la embebida, que incluye una copia de `tes`).
+- `totalIndexSize`: `kmers` / `tes_embebidos` = 11,2.
+- Tiempo total de carga: `kmers` 198,2 s frente a embebida 193,9 s (diferencia de 2,2 %).
+
+Figuras: `figuras/benchmark_carga_panteon.png` y `figuras/benchmark_espacio_panteon.png` (300 dpi).
+Interpretación: última celda de `notebooks/06_benchmark_carga_espacio.ipynb`.
+
+Observaciones sobre la estimación previa:
+
+- El piloto con los primeros 5.000 TEs estimó 79 s de cálculo para la estrategia `kmers` (1,64 s × 239.946 / 5.000);
+  el real fue 123 s, porque los TEs posteriores son más largos que los primeros 5.000.
+- La estimación del piloto (4,1 min para ambas estrategias) no incluía la creación de índices ni la verificación;
+  la ejecución completa de `notebooks/03_pipeline_kmers.ipynb` tardó unos 7 minutos.
 
 ## 5. Decisiones de diseño (parte de Juan Arias)
 
