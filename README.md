@@ -10,7 +10,7 @@ de cada especie y sus perfiles de k-mers (k = 1 a 6).
 | Integrante | Responsabilidad principal |
 | --- | --- |
 | Thomas | Modelo de datos, entorno y repositorio, limpieza del FASTA, carga de `tes` y `secuencias`, benchmark de consultas e índices |
-| Juan Arias | Exploración del CSV en `00_exploracion_csv.ipynb` y, con la lista de especies del FASTA (`resultados/especies_fasta.csv`), el cruce | Solo para el cruce |
+| Juan Arias | Exploración y limpieza del CSV, carga de `especies`, cruce FASTA–CSV, carga de `tes` y `secuencias`, cálculo y carga de k-mers, benchmark de carga y espacio |
 | Juan Hernandez | Consultas 1–9, 12–15 y las dos consultas propias |
 | Isabela Murillo | Figuras, bibliotecas `.fasta` (consultas 10 y 11) y base del artículo |
 
@@ -170,11 +170,12 @@ seguirlo: cada integrante avanza en su notebook en paralelo, usando los datos de
 | 00 | `00_exploracion.ipynb` | Exploración del FASTA y registro de inconsistencias | Thomas |
 | 00 | `00_exploracion_csv.ipynb` | Exploración del CSV y registro de inconsistencias | Juan Arias |
 | 01 | `01_pipeline_csv_especies.ipynb` | Limpieza del CSV y carga de `especies` | Juan Arias |
-| 02 | `02_pipeline_fasta_tes.ipynb` | Limpieza del FASTA, cruce y carga de `tes` y `secuencias` | Thomas |
+| 02 | `02_pipeline_fasta_tes.ipynb` | Limpieza del FASTA, cruce y carga de `tes` y `secuencias` | Juan Arias |
 | 03 | `03_pipeline_kmers.ipynb` | Cálculo y carga de k-mers | Juan Arias |
 | 04 | `04_consultas.ipynb` | Consultas 1–9, 12–15 y propias | Juan Hernandez |
 | 05 | `05_bibliotecas_y_figuras.ipynb` | Consultas 10 y 11, bibliotecas `.fasta` y figuras | Isabela Murillo |
-| 06 | `06_benchmark.ipynb` | Evaluación experimental del diseño | Thomas y Juan Arias |
+| 06 | `06_benchmark_carga_espacio.ipynb` | Benchmark de carga y espacio (`collStats`) | Juan Arias |
+| 06 | `06_benchmark_consultas.ipynb` | Benchmark de consultas con y sin índices (`explain`) | Thomas |
 
 `especies` se carga antes que `tes` porque cada TE guarda el `_id` de su especie.
 

@@ -321,7 +321,7 @@ protege así:
 | Reglas de `$jsonSchema` para `tes` y `kmers` | Thomas | Cerrado: implementadas en los notebooks 02 y 03 (sección Validación de esquema) |
 | Estrategia alternativa de k-mers para el benchmark | Thomas y Juan Arias | Cerrado: `panteon_bench.tes_embebidos`, medida en carga y espacio con n = 3 (`notebooks/06_benchmark_carga_espacio.ipynb`) |
 | Normalización de valores "No order…" y espacios en la taxonomía | Juan Arias | Cerrado: 26 rellenos de `Order` → `null`; `strip` en todas las columnas; vacíos → `null` (notebook 01) |
-| Benchmark de consultas (acceso a un k frente al perfil completo; con y sin índices) | Thomas | Abierto: define la conclusión de la decisión 4 (`notebooks/06_benchmark.ipynb`) |
+| Benchmark de consultas (acceso a un k frente al perfil completo; con y sin índices) | Thomas | Abierto: define la conclusión de la decisión 4 (`notebooks/06_benchmark_consultas.ipynb`) |
 
 ## Historial de cambios
 
