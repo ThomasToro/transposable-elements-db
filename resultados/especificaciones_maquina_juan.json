@@ -1,0 +1,35 @@
+{
+  "fecha": "2026-10-25T23:05:04",
+  "maquina": "Sebastians-MacBook-Pro.local",
+  "usuario": "juan",
+  "cpu": {
+    "modelo": "Apple M5",
+    "nucleos_totales": 10,
+    "nucleos_rendimiento": 4,
+    "nucleos_eficiencia": 6
+  },
+  "ram_gb": 24.0,
+  "sistema_operativo": {
+    "nombre": "macOS",
+    "version": "27.0.1",
+    "kernel": "27.0.0"
+  },
+  "disco": {
+    "total_gb": 460.4,
+    "libre_gb": 116.1,
+    "tipo": "SSD",
+    "protocolo": "Apple Fabric",
+    "sistema_archivos": "APFS"
+  },
+  "mongodb": {
+    "version": "7.0.45",
+    "motor_almacenamiento": "wiredTiger",
+    "cache_wiredtiger_max_gb": 11.5
+  },
+  "python": {
+    "version": "3.11.17",
+    "pymongo": "4.19.0",
+    "numpy": "2.4.6",
+    "pandas": "3.1.0"
+  }
+}
