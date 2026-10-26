@@ -27,3 +27,24 @@ def test_secuencia_corta():
 
 def test_minusculas():
     assert all_kmer_counts("atgca") == all_kmer_counts("ATGCA")
+
+
+def _ingenuo(seq, k):
+    seq = seq.upper()
+    counts = {}
+    for i in range(len(seq) - k + 1):
+        w = seq[i:i + k]
+        if set(w) <= set("ACGT"):
+            counts[w] = counts.get(w, 0) + 1
+    return {"valid_windows": sum(counts.values()), "counts": counts}
+
+
+def test_contra_ingenuo():
+    import random
+
+    rng = random.Random(0)
+    for i in range(50):
+        alfabeto = "ACGTacgt" + ("NRY" if i % 3 == 0 else "")
+        seq = "".join(rng.choice(alfabeto) for _ in range(rng.randint(0, 300)))
+        for k in range(1, 7):
+            assert kmer_counts(seq, k) == _ingenuo(seq, k), (seq, k)
