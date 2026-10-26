@@ -1,0 +1,3 @@
+estrategia,base,n_tes,n_docs,t_calculo_s,t_insercion_s,t_indices_s
+coleccion_kmers,panteon_prueba,25,150,0.005,0.004,0.086
+embebido_en_tes,panteon_prueba_bench,25,25,0.005,0.006,0.036

@@ -1,0 +1,13 @@
+Problema,Casos
+Encabezados sin '#' o '@',0
+PDB con formato inválido,31600
+PDB duplicados,0
+Clasificación con niveles distintos de 3,0
+"Clasificaciones sospechosas (unknown, NA...)",0
+Registros con espacios sobrantes en la especie,0
+Especies del FASTA sin metadatos en el CSV,4
+Secuencias vacías,0
+Secuencias de longitud < 6,0
+Secuencias con minúsculas,208354
+Secuencias con N,54837
+Secuencias con caracteres distintos de ACGTN,0
