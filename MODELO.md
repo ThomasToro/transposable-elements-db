@@ -55,6 +55,7 @@ especies ──1:N──► tes ──1:1──► secuencias
 | `source` | string | CSV `Source` | `RM2+MCH` o `Dfam` |
 | `source_2` | string / null | CSV `Source 2` | Casi siempre vacío |
 | `notes` | string / null | CSV `Notes` | |
+| `is_species` | bool | Calculado | `false` para las 45 entradas que son grupos taxonómicos (marcadas en `Notes` + `Muroidea`); tienen TEs, por eso se cargan marcadas y no se excluyen |
 
 ```json
 {
@@ -69,7 +70,8 @@ especies ──1:N──► tes ──1:1──► secuencias
   },
   "source": "RM2+MCH",
   "source_2": null,
-  "notes": "B-GUT"
+  "notes": "B-GUT",
+  "is_species": true
 }
 ```
 
@@ -127,8 +129,11 @@ especies ──1:N──► tes ──1:1──► secuencias
 | `pdb_id` | string | Copia, para la consulta 15 |
 | `te_order` | string | Copia, para el heatmap |
 | `k` | int | De 1 a 6 |
-| `valid_windows` | int | Ventanas contadas (sin caracteres distintos de A, C, G, T) |
-| `counts` | object | Solo los k-mers presentes: `{"AA": 221, "AC": 98, ...}` |
+| `valid_windows` | int | Ventanas contadas (sin caracteres distintos de A, C, G, T). 0 si el TE es más corto que k |
+| `counts` | object | Solo los k-mers presentes: `{"AA": 221, "AC": 98, ...}`. `{}` si el TE es más corto que k |
+
+Los TEs más cortos que k se guardan igual, con `valid_windows = 0` y `counts = {}`, para que cada TE
+tenga siempre 6 documentos.
 
 ```json
 {
@@ -166,7 +171,7 @@ Punto de partida: se confirman o descartan con `explain("executionStats")` en el
 | --- | --- | --- |
 | `tes` | Sí | Colección generada por el pipeline; detecta errores de parseo |
 | `kmers` | Sí | Colección generada por el pipeline; garantiza `k` entre 1 y 6 |
-| `especies` | No | _(por confirmar)_ |
+| `especies` | Sí | `species`, `taxonomy`, `taxonomy.kingdom` e `is_species` obligatorios; `kingdom` con enum `Animalia`/`Plantae`/`Fungi`; `is_species` bool |
 | `secuencias` | No | Se guardan tal como vienen del FASTA |
 
 Las reglas se escriben después de la exploración, cuando se conozcan los casos raros
@@ -176,14 +181,15 @@ Las reglas se escriben después de la exploración, cuando se conozcan los casos
 
 | Pendiente | Responsable | Estado |
 | --- | --- | --- |
-| Qué hacer con los TEs cuya especie no está en el CSV | Juan Arias propone, Thomas aplica | Abierto |
-| Tratamiento de ventanas con N u otros caracteres | Juan Arias | Abierto |
+| Qué hacer con los TEs cuya especie no está en el CSV | Juan Arias propone, Thomas aplica | Cerrado: 0 TEs sin especie tras `normalize_species` (`src/normalizacion.py`: strip, espacios dobles, puntos y minúsculas); antes de quitar los puntos eran 533 |
+| Tratamiento de ventanas con N u otros caracteres | Juan Arias | Cerrado: se descarta toda ventana con un carácter distinto de A, C, G, T; `valid_windows` cuenta solo las ventanas válidas |
 | Reglas de `$jsonSchema` para `tes` y `kmers` | Thomas | Después de la exploración |
-| Estrategia alternativa de k-mers para el benchmark | Thomas y Juan Arias | Más adelante |
-| Normalización de valores "No order…" y espacios en la taxonomía | Juan Arias | Abierto |
+| Estrategia alternativa de k-mers para el benchmark | Thomas y Juan Arias | Abierto. Propuesta: k-mers embebidos en `panteon_bench.tes_embebidos` (mismo formato disperso, solo cambia la ubicación) |
+| Normalización de valores "No order…" y espacios en la taxonomía | Juan Arias | Cerrado: 26 rellenos de `Order` → `null`; strip en todas las columnas; vacíos → `null` |
 
 ## Historial de cambios
 
 | Fecha | Cambio | Quién |
 | --- | --- | --- |
 | 2026-10-24 | Primer borrador del modelo | Thomas |
+| 2026-10-25 | `is_species` y validación en `especies`; TEs más cortos que k en `kmers`; cierre de pendientes de cruce, ventanas con N y normalización | Juan Arias |

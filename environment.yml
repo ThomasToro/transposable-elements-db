@@ -10,3 +10,4 @@ dependencies:
   - pymongo
   - matplotlib
   - seaborn
+  - pytest
