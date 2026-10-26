@@ -14,55 +14,27 @@ de cada especie y sus perfiles de k-mers (k = 1 a 6).
 | Juan Hernandez | Consultas 1–9, 12–15 y las dos consultas propias |
 | Isabela Murillo | Figuras, bibliotecas `.fasta` (consultas 10 y 11) y base del artículo |
 
-## Primeros pasos de cada integrante
+## Estado del proyecto
 
-Todos: aceptar la invitación de colaborador en GitHub, instalar los requisitos, seguir la
-**Instalación**, descargar los **Datos** y leer `MODELO.md`. Si están de acuerdo con el modelo
-o cambiarían algo, avísenle a Thomas: debe quedar acordado antes de cargar los datos reales.
+| Parte | Notebook o archivo | Responsable | Estado |
+| --- | --- | --- | --- |
+| Exploración del FASTA | `00_exploracion.ipynb` | Thomas | Terminado |
+| Exploración del CSV | `00_exploracion_csv.ipynb` | Juan Arias | Terminado |
+| Pipeline: `especies` y cruce | `01_pipeline_csv_especies.ipynb` | Juan Arias | Terminado |
+| Pipeline: `tes` y `secuencias` | `02_pipeline_fasta_tes.ipynb` | Juan Arias | Terminado |
+| Pipeline: k-mers | `03_pipeline_kmers.ipynb` | Juan Arias | Terminado |
+| Benchmark de carga y espacio | `06_benchmark_carga_espacio.ipynb` | Juan Arias | Terminado |
+| Benchmark de consultas | `06_benchmark_consultas.ipynb` | Thomas | En curso: ejecutado y conclusión en `MODELO.md`; falta la interpretación en el notebook |
+| Consultas 1–9, 12–15 y propias | `04_consultas.ipynb` | Juan Hernandez | Pendiente |
+| Bibliotecas `.fasta` (consultas 10 y 11) y figuras | `05_bibliotecas_y_figuras.ipynb` | Isabela Murillo | Pendiente |
+| Revista y artículo | `JOURNAL.md`, `articulo/` | Isabela Murillo | Pendiente |
 
-| Integrante | Qué hacer ahora | ¿Depende de alguien? |
-| --- | --- | --- |
-| Thomas | Exploración del FASTA en `00_exploracion.ipynb` y compartir la lista de especies con Juan Arias | No |
-| Juan Arias | Exploración del CSV en `00_exploracion_csv.ipynb` (crearlo como copia de `00_exploracion.ipynb`) y, con la lista de especies del FASTA, el cruce | Solo para el cruce |
-| Juan Hernandez | Escribir las consultas en `04_consultas.ipynb` usando los **datos de prueba** (ver abajo) | No |
-| Isabela Murillo | Elegir la revista, llenar `JOURNAL.md` y montar la plantilla LaTeX en Overleaf | No |
+## Datos de prueba
 
-## Datos de prueba (para no esperar la carga real)
-
-La carga real (`especies`, `tes`, `secuencias`, `kmers`) depende de la exploración, la limpieza y el
-cruce que hacen Thomas y Juan Arias, y puede tardar varios días. Para que nadie se quede esperando,
-`scripts/datos_prueba.py` crea una base **`panteon_prueba`** con exactamente la misma estructura de
-`MODELO.md`:
-
-- 7 especies reales del CSV (taxonomía y Source reales), de los tres reinos.
-- 25 TEs, secuencias y perfiles de k-mers **inventados** (identificadores `PDB99…`). Los k-mers se
-  calculan de verdad a partir de esas secuencias.
-- Casos especiales a propósito: una especie sin TEs, secuencias con N y una secuencia de 5
-  nucleótidos sin 6-mers.
-
-Como las consultas dependen de la **estructura** de los documentos y no de los datos en sí, las
-consultas escritas sobre `panteon_prueba` funcionarán igual sobre la base real. Con la carga real
-solo se cambia el nombre de la base.
-
-Para crearla (se puede ejecutar las veces que quieran; siempre borra y recrea `panteon_prueba`):
-
-```
-conda activate panteon
-python scripts/datos_prueba.py
-```
-
-En el notebook se conectan así:
-
-```python
-from pymongo import MongoClient
-
-client = MongoClient("mongodb://localhost:27017")
-db = client["panteon_prueba"]   # cambiar a client["panteon"] cuando llegue la carga real
-```
-
-Cada integrante ejecuta el script en su propio computador: la base queda en su MongoDB local,
-no se comparte por Git. Con los datos de prueba se pueden escribir todas las consultas; los
-resultados reales y su interpretación se completan cuando llegue el dump de la base real.
+`scripts/datos_prueba.py` crea la base `panteon_prueba` (7 especies reales y 25 TEs inventados), útil solo
+para pruebas rápidas: borra y recrea la base cada vez que se ejecuta. Ya no cumple el modelo final (le falta
+`is_species`), así que para trabajar se usa la base real `panteon` restaurada del dump (ver
+**Respaldo de la base**).
 
 ## Requisitos
 
@@ -181,26 +153,37 @@ seguirlo: cada integrante avanza en su notebook en paralelo, usando los datos de
 
 ## Respaldo de la base (dump)
 
-Los dumps no van en el repositorio; se comparten por Google Drive.
+Los dumps no van en el repositorio; se comparten por Google Drive como `.tar` (los `.bson.gz` de adentro ya
+van comprimidos). Detalle de tamaños, verificación y comandos: `resultados/dump_info.md`.
 
-- **Dump base:** `especies`, `tes` y `secuencias`.
-- **Dump con k-mers:** agrega `kmers`.
+| Archivo | Contenido |
+| --- | --- |
+| `panteon_kmers.tar` | Base `panteon`: `especies`, `tes`, `secuencias` y `kmers` |
+| `panteon_bench.tar` | Base `panteon_bench`: `tes_embebidos` (solo para el benchmark) |
 
 Enlaces: _(pendiente)_
 
-Para restaurarlo:
+Para restaurarlos (desde la raíz del repositorio, con los `.tar` descargados ahí):
 
 ```
-mongorestore --gzip --drop --db panteon <carpeta-del-dump>/panteon
+mkdir -p dump
+tar -xf panteon_kmers.tar -C dump/
+mongorestore --gzip --drop dump/panteon_kmers
+tar -xf panteon_bench.tar -C dump/
+mongorestore --gzip --drop dump/panteon_bench
 ```
 
-Para generarlo:
+Para generarlos:
 
 ```
-mongodump --gzip --db panteon --out dump/
+mongodump --gzip --db panteon --out dump/panteon_kmers
+mongodump --gzip --db panteon_bench --out dump/panteon_bench
+cd dump && tar -cf panteon_kmers.tar panteon_kmers && tar -cf panteon_bench.tar panteon_bench
 ```
 
-Como alternativa al dump, los notebooks 01 a 03 regeneran la base completa desde los archivos originales.
+**Reconstruir desde cero (sin dump):** ejecutar en orden `01_pipeline_csv_especies.ipynb` →
+`02_pipeline_fasta_tes.ipynb` (con `RECONSTRUIR_TODO = True`) → `03_pipeline_kmers.ipynb`. El 02 se detiene
+si `kmers` o `tes_embebidos` ya tienen datos, porque recargar `tes` cambia sus `_id`.
 
 ## Estructura del repositorio
 
@@ -212,7 +195,11 @@ transposable-elements-db/
 ├── environment.yml
 ├── data/              ← FASTA y CSV (no se suben)
 ├── notebooks/
-├── scripts/           ← datos_prueba.py (base de prueba con la estructura del modelo)
+├── src/               ← funciones reutilizables: k-mers (kmers.py), normalización de especies
+│                        (normalizacion.py) y registro de benchmarks (benchmark.py)
+├── tests/             ← pruebas de src/ con pytest (`python -m pytest tests/`)
+├── scripts/           ← datos_prueba.py (base panteon_prueba), bench_kmers.py (rendimiento del
+│                        cálculo de k-mers) y specs_maquina.py (especificaciones de la máquina)
 ├── bibliotecas/       ← archivos .fasta generados con las consultas 10 y 11
 ├── figuras/
 ├── resultados/        ← reportes de calidad, tablas del benchmark

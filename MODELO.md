@@ -5,8 +5,7 @@ campos definidos aquí. Cualquier cambio se discute antes y se registra en el hi
 
 **Estado:** estructura congelada (2026-10-26). Las colecciones, campos, índices y validadores descritos
 aquí son los implementados en `notebooks/01`–`03` y ya no cambian; cualquier cambio posterior se discute con
-el equipo y se registra en el historial. La conclusión de la decisión 4 queda pendiente del benchmark de
-consultas.
+el equipo y se registra en el historial.
 
 Bases de datos: `panteon` (modelo principal) y `panteon_bench` (solo `tes_embebidos`, para el benchmark).
 
@@ -59,9 +58,33 @@ panteon_bench.tes_embebidos (1:1 con tes, mismo _id; solo benchmark)
 
    La embebida carga un 5,5 % más rápido; la diferencia sale sobre todo de la creación de índices (8,9 s)
    y en menor medida de la inserción (2,3 s). En disco los datos ocupan prácticamente lo mismo y los
-   índices de `kmers` ocupan unas 11 veces más. **Con carga y espacio la alternativa no pierde.** La
-   conclusión de esta decisión depende del **benchmark de consultas (pendiente, responsable: Thomas)**, que
-   compara el acceso a un solo k (consulta 15, heatmap de 2-mers) contra el acceso al perfil completo.
+   índices de `kmers` ocupan unas 11 veces más.
+
+   Benchmark de consultas (n = 3, misma máquina; `resultados/benchmark_consultas.csv`,
+   `notebooks/06_benchmark_consultas.ipynb`; media ± DE):
+
+   | Consulta | Colección `kmers` | Embebida |
+   | --- | --- | --- |
+   | Q1 perfil de un k, con índice (ms por búsqueda) | 0,11 | 0,12 |
+   | Q3 perfil completo, con índice (ms por búsqueda) | 0,37 | 0,32 |
+   | Q2 heatmap, tiempo total (s) | 11,7 ± 7,1 | 11,3 ± 5,5 |
+   | Q2 heatmap, lectura según `explain` (s; una medición, caché fría) | 4,0 | 16,9 |
+   | Q4 conteo sin k-mers, variante con índice (s; ningún índice aplica, ambas hacen COLLSCAN) | 0,14 ± 0,01 | 0,35 ± 0,19 |
+
+   **Conclusión:**
+   - Con índice, las consultas de k-mers por secuencia (Q1 y Q3) empatan. Los índices las aceleran entre
+     unas 800 y 5.000 veces frente a un recorrido completo (Q1 colección: 0,11 ms frente a 596 ms por búsqueda).
+   - En el heatmap (Q2) el tiempo total empata porque, con los datos en memoria, domina el cálculo de la
+     agregación. Según `explain`, la colección aparte lee unas 4 veces más rápido (indicio de una sola
+     medición): usa el índice `{k, te_order}` y solo lee los documentos de k = 2, mientras que la embebida
+     recorre los 239.946 documentos con los 6 perfiles. Si los datos no cupieran en memoria, esa diferencia
+     de lectura pesaría más.
+   - En las consultas que no usan k-mers (Q4), la embebida es de 2,5 a 4,5 veces más lenta, porque arrastra
+     los perfiles. De las 15 consultas obligatorias, solo la 15 usa k-mers, además del heatmap (figura 4).
+   - **Se mantiene la colección aparte**, porque favorece el tipo de consulta más frecuente del proyecto; la
+     embebida solo ofrece una carga 5,5 % más rápida e índices más pequeños.
+   - **Limitaciones:** alta variación en Q2 y en las variantes sin índice (efecto de caché al alternar dos
+     colecciones de unos 7,7 GB sin comprimir), una sola máquina y n = 3.
 5. **Conteos dispersos.** Los conteos son exactos y las frecuencias se derivan como
    `counts / valid_windows`; guardar frecuencias perdería exactitud. El diccionario es autodescriptivo
    (cada valor dice qué k-mer es) y no guarda ceros. El ahorro frente a un arreglo denso depende de la
@@ -321,7 +344,7 @@ protege así:
 | Reglas de `$jsonSchema` para `tes` y `kmers` | Thomas | Cerrado: implementadas en los notebooks 02 y 03 (sección Validación de esquema) |
 | Estrategia alternativa de k-mers para el benchmark | Thomas y Juan Arias | Cerrado: `panteon_bench.tes_embebidos`, medida en carga y espacio con n = 3 (`notebooks/06_benchmark_carga_espacio.ipynb`) |
 | Normalización de valores "No order…" y espacios en la taxonomía | Juan Arias | Cerrado: 26 rellenos de `Order` → `null`; `strip` en todas las columnas; vacíos → `null` (notebook 01) |
-| Benchmark de consultas (acceso a un k frente al perfil completo; con y sin índices) | Thomas | Abierto: define la conclusión de la decisión 4 (`notebooks/06_benchmark_consultas.ipynb`) |
+| Benchmark de consultas (acceso a un k frente al perfil completo; con y sin índices) | Thomas | Cerrado: conclusión de la decisión 4 (`notebooks/06_benchmark_consultas.ipynb`, `resultados/benchmark_consultas.csv`) |
 
 ## Historial de cambios
 
@@ -330,3 +353,4 @@ protege así:
 | 2026-10-24 | Primer borrador del modelo | Thomas |
 | 2026-10-25 | `is_species` y validación en `especies`; TEs más cortos que k en `kmers`; cierre de pendientes de cruce, ventanas con N y normalización | Juan Arias |
 | 2026-10-26 | Estructura congelada: modelo alineado con lo implementado (notebooks 01–03); `tes_embebidos`, validadores reales, tamaños de índices, calidad de datos, integridad referencial y evidencia del benchmark de carga y espacio en la decisión 4 | Thomas |
+| 2026-10-26 | Conclusión de la decisión 4 con el benchmark de consultas | Thomas |
