@@ -1,0 +1,4 @@
+estrategia,base,coleccion,count,size,avgObjSize,storageSize,totalIndexSize,idx__id_,idx_te_id_1_k_1,idx_pdb_id_1_k_1,idx_k_1_te_order_1,idx_pdb_id_1,idx_species_id_1,idx_species_name_1_classification.te_superfamily_1,idx_kingdom_1
+coleccion_kmers,panteon_prueba,kmers,150,402902,2686,159744,81920,20480,20480.0,20480.0,20480.0,,,,
+embebido_en_tes,panteon_prueba_bench,tes_embebidos,25,398567,15942,163840,40960,20480,,,,20480.0,,,
+referencia_tes,panteon_prueba,tes,25,7725,309,20480,102400,20480,,,,20480.0,20480.0,20480.0,20480.0
