@@ -13,6 +13,13 @@ Generado por `notebooks/01_pipeline_csv_especies.ipynb`. Llave de cruce: `src.no
 
 Listas completas: `cruce_fasta_sin_csv.csv` y `cruce_csv_sin_fasta.csv`.
 
+## `TE_count` del CSV frente al FASTA
+
+La columna `TE_count` del CSV solo se usa para validar; no se guarda en `especies`.
+Coinciden exactamente 2790 de 2790 especies.
+
+No hay especies con conteo distinto.
+
 ## Causa y solución de los desajustes
 
 Una primera versión de la llave (strip, espacios dobles a uno y minúsculas) dejaba 4 especies sin

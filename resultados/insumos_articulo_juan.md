@@ -18,11 +18,20 @@ Origen: `notebooks/00_exploracion_csv.ipynb` (sección 1).
 | `Species` no binomial sin marca (subespecies, cepas, f. sp., híbridos, nombre común) | `Antilocapra americana peninsularis` | 52 | Se aceptan tal cual | `resultados/reporte_calidad_csv.md` |
 | `Source 2` con comentarios en lugar de fuentes | `Genero y familia repetido` | 4 | → `null` | `resultados/reporte_calidad_csv.md`; `resultados/reporte_cruce.md` |
 | Taxonomía sospechosa (taxón bajo un padre minoritario) | `Passeriformes` en Holothuroidea | 11 | Se cargan tal cual; solo se documentan | `resultados/reporte_calidad_csv.md` |
+| Género con `Class`/`Order`/`Family` contradictoria (inconsistencia real) | Beta vulgaris (Amaranthaceae, Class vacía) / Beta vulgaris subsp vulgaris (Chenopodiaceae, Magnoliopsida) | 18 (10 géneros) | Se cargan tal cual; solo se documentan | `resultados/reporte_calidad_csv.md`; `notebooks/00_exploracion_csv.ipynb` (sección 5e) |
 | `Species` duplicada tras normalizar | — | 0 | `species` con índice único | `resultados/reporte_calidad_csv.md` |
 
 Faltantes por columna (NaN en el CSV original): Phylum 3, Class 49, Order 29, Family 76, Notes 6,
 Source 2 2.740 (98,2 %). Kingdom, Species y Source completas.
 Origen: `notebooks/00_exploracion_csv.ipynb` (sección 3).
+
+Consistencia por género (primera palabra de `Species`): 21 géneros tienen especies con distinta `Class`,
+`Order` o `Family`. 10 son inconsistencias reales: Beta (misma especie con dos familias, sinónimas, y
+`Class` vacía en una), 7 géneros de insectos con `Order = Neoptera` (infraclase) en una especie
+(Andrena, Trichogramma, Chironomus, Coelopa, Sarcophaga, Yponomeuta, Ypsolopha), y Aspergillus latus y
+Exophiala sp hkrs030 con una subclase en `Family`. Las otras 11 no son errores: 3 por reclasificación o
+géneros polifiléticos (Athelia, Agrocybe, Candida) y 8 por un valor faltante.
+Origen: `resultados/reporte_calidad_csv.md`; `notebooks/00_exploracion_csv.ipynb` (sección 5e).
 
 Valores de `Source`: `RM2+MCH` 2.404, `Dfam` 386. Origen: `notebooks/00_exploracion_csv.ipynb` (sección 5c).
 
@@ -61,6 +70,8 @@ Resultado inicial (llave: strip, espacios dobles a uno, minúsculas): 4 especies
 - Solución: `normalize_species` también elimina los puntos. Ningún nombre del CSV tiene punto; la nueva llave da 0 duplicados en el CSV.
 - Resultado final: 0 especies del FASTA sin pareja, 0 especies del CSV sin TEs, 0 TEs sin `species_id`.
 - En la base se guarda el nombre original del CSV; la llave normalizada solo se usa para comparar.
+- `TE_count` del CSV (solo para validar, no se guarda) coincide exactamente con el número de TEs del FASTA
+  en las 2.790 especies; 0 especies con conteo distinto.
 
 ## 3. K-mers
 
@@ -72,6 +83,7 @@ Resultado inicial (llave: strip, espacios dobles a uno, minúsculas): 4 especies
 | `valid_windows` | Número de ventanas válidas; frecuencia = `counts / valid_windows` | `src/kmers.py`; `MODELO.md` |
 | Formato | Diccionario disperso: solo k-mers presentes (sin ceros) | `MODELO.md` (decisión 5) |
 | TEs más cortos que k | Se guardan con `valid_windows = 0` y `counts = {}`; cada TE tiene siempre 6 documentos | `MODELO.md`; `notebooks/03_pipeline_kmers.ipynb` (sección 6) |
+| Longitud mínima real | 81 nt, así que ningún TE queda con `valid_windows = 0`; el caso anterior es solo defensivo | `resultados/reporte_calidad_fasta.md` |
 | Método | Codificación numpy (A, C, G, T → 0..3; resto → marca de inválido), índice base 4 vectorizado, ventanas inválidas enmascaradas con suma acumulada de inválidos, conteo con `np.bincount`, conversión a dict al final | `src/kmers.py` |
 | Validación del método | Igual a una implementación ingenua en Python puro en 50 secuencias aleatorias (con N, R, Y y minúsculas), k = 1..6 | `tests/test_kmers.py` |
 
