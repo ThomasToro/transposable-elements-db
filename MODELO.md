@@ -84,7 +84,7 @@ panteon_bench.tes_embebidos (1:1 con tes, mismo _id; solo benchmark)
    - **Se mantiene la colección aparte**, porque favorece el tipo de consulta más frecuente del proyecto; la
      embebida solo ofrece una carga 5,5 % más rápida e índices más pequeños.
    - **Limitaciones:** alta variación en Q2 y en las variantes sin índice (efecto de caché al alternar dos
-     colecciones de unos 7,7 GB sin comprimir), una sola máquina y n = 3.
+     colecciones de unos 8 GB sin comprimir), una sola máquina y n = 3.
 5. **Conteos dispersos.** Los conteos son exactos y las frecuencias se derivan como
    `counts / valid_windows`; guardar frecuencias perdería exactitud. El diccionario es autodescriptivo
    (cada valor dice qué k-mer es) y no guarda ceros. El ahorro frente a un arreglo denso depende de la
