@@ -24,3 +24,18 @@ def test_distingue_repeticiones(tmp_path):
     df = pd.read_csv(ruta).set_index("repeticion")
     assert len(df) == 3
     assert df.loc[1, "t"] == 4 and df.loc[2, "t"] == 2 and df.loc[3, "t"] == 3
+
+
+def test_distingue_maquinas(tmp_path):
+    ruta = tmp_path / "b.csv"
+    # CSV antiguo sin columna maquina: sus filas cuentan como la Mac
+    pd.DataFrame([{"estrategia": "a", "base": "real", "repeticion": 1, "t": 1}]).to_csv(ruta, index=False)
+    guardar_benchmark([{"estrategia": "a", "base": "real", "repeticion": 1, "maquina": "pc_windows", "t": 2}], ruta)
+    df = pd.read_csv(ruta).set_index("maquina")
+    assert len(df) == 2
+    assert df.loc["mac_m5", "t"] == 1 and df.loc["pc_windows", "t"] == 2
+    # Repetir en la misma máquina reemplaza solo su fila
+    guardar_benchmark([{"estrategia": "a", "base": "real", "repeticion": 1, "maquina": "pc_windows", "t": 3}], ruta)
+    df = pd.read_csv(ruta).set_index("maquina")
+    assert len(df) == 2
+    assert df.loc["mac_m5", "t"] == 1 and df.loc["pc_windows", "t"] == 3

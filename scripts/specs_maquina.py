@@ -37,6 +37,11 @@ def sysctl(clave):
     return comando("sysctl", "-n", clave)
 
 
+def powershell(expresion):
+    """Valor de una expresión de PowerShell (Windows), o None si falla. Se usa CIM porque wmic está obsoleto."""
+    return comando("powershell", "-NoProfile", "-NonInteractive", "-Command", expresion)
+
+
 def cpu():
     sistema = platform.system()
     datos = {"modelo": platform.processor() or platform.machine(), "nucleos_totales": os.cpu_count(),
@@ -52,6 +57,11 @@ def cpu():
         texto = Path("/proc/cpuinfo").read_text()
         modelo = next((l.split(":", 1)[1].strip() for l in texto.splitlines() if l.startswith("model name")), None)
         datos["modelo"] = modelo or datos["modelo"]
+    elif sistema == "Windows":
+        # platform.processor() solo da la familia ("Intel64 Family 6 ..."), no el nombre comercial
+        datos["modelo"] = powershell("(Get-CimInstance Win32_Processor | Select-Object -First 1).Name") or datos["modelo"]
+        fisicos = powershell("(Get-CimInstance Win32_Processor | Measure-Object NumberOfCores -Sum).Sum")
+        datos["nucleos_fisicos"] = int(fisicos) if fisicos and fisicos.isdigit() else None
     return datos
 
 
@@ -61,6 +71,10 @@ def ram_gb():
     if platform.system() == "Linux":
         kb = next(int(l.split()[1]) for l in Path("/proc/meminfo").read_text().splitlines() if l.startswith("MemTotal"))
         return round(kb * 1024 / GB, 1)
+    if platform.system() == "Windows":
+        total = powershell("(Get-CimInstance Win32_ComputerSystem).TotalPhysicalMemory")
+        if total and total.isdigit():
+            return round(int(total) / GB, 1)
     try:
         import psutil
         return round(psutil.virtual_memory().total / GB, 1)
@@ -82,6 +96,14 @@ def disco():
         rot = comando("lsblk", "-dno", "ROTA")
         if rot:
             datos["tipo"] = "HDD" if rot.split()[0] == "1" else "SSD"
+    elif platform.system() == "Windows":
+        # Tipo del disco físico que contiene la unidad del repo (C:, D:, ...)
+        letra = RESULTADOS.resolve().drive.rstrip(":")
+        tipo = powershell(f"(Get-Partition -DriveLetter {letra} | Get-Disk | Get-PhysicalDisk).MediaType")
+        bus = powershell(f"(Get-Partition -DriveLetter {letra} | Get-Disk).BusType")
+        datos["tipo"] = {"SSD": "SSD", "HDD": "HDD"}.get((tipo or "").strip())
+        datos["protocolo"] = (bus or "").strip() or None
+        datos["sistema_archivos"] = powershell(f"(Get-Volume -DriveLetter {letra}).FileSystem") or None
     return datos
 
 
@@ -99,6 +121,11 @@ def mongodb(uri):
 def sistema_operativo():
     if platform.system() == "Darwin":
         return {"nombre": "macOS", "version": platform.mac_ver()[0], "kernel": platform.release()}
+    if platform.system() == "Windows":
+        # Caption distingue Windows 10 de 11 (platform.release() puede decir "10" en ambos)
+        nombre = powershell("(Get-CimInstance Win32_OperatingSystem).Caption")
+        return {"nombre": nombre or f"Windows {platform.release()}", "version": platform.version(),
+                "kernel": platform.release(), "edicion": platform.win32_edition()}
     return {"nombre": platform.system(), "version": platform.version(), "kernel": platform.release()}
 
 
@@ -107,6 +134,8 @@ def a_markdown(e):
     nucleos = f"{c['nucleos_totales']}"
     if c["nucleos_rendimiento"] is not None:
         nucleos += f" ({c['nucleos_rendimiento']} de rendimiento + {c['nucleos_eficiencia']} de eficiencia)"
+    elif c.get("nucleos_fisicos"):
+        nucleos += f" lógicos ({c['nucleos_fisicos']} físicos)"
     filas = [
         ("Fecha", e["fecha"]),
         ("Máquina", e["maquina"]),
