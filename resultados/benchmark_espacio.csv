@@ -1,7 +1,4 @@
 estrategia,base,coleccion,count,size,avgObjSize,storageSize,totalIndexSize,idx__id_,idx_te_id_1_k_1,idx_pdb_id_1_k_1,idx_k_1_te_order_1,idx_pdb_id_1,idx_species_id_1,idx_species_name_1_classification.te_superfamily_1,idx_kingdom_1,repeticion,maquina
-coleccion_kmers,panteon_prueba,kmers,150,402902,2686,159744,81920,20480,20480.0,20480.0,20480.0,,,,,1,mac_m5
-embebido_en_tes,panteon_prueba_bench,tes_embebidos,25,398567,15942,163840,40960,20480,,,,20480.0,,,,1,mac_m5
-referencia_tes,panteon_prueba,tes,25,7725,309,20480,102400,20480,,,,20480.0,20480.0,20480.0,20480.0,1,mac_m5
 coleccion_kmers,panteon,kmers,1439676,8144577956,5657,3177865216,60469248,15781888,16445440.0,20344832.0,7897088.0,,,,,1,mac_m5
 embebido_en_tes,panteon_bench,tes_embebidos,239946,8104036854,33774,3184594944,5435392,2490368,,,,2945024.0,,,,1,mac_m5
 referencia_tes,panteon,tes,239946,73969252,308,12718080,10919936,2404352,,,,2945024.0,1830912.0,2588672.0,1150976.0,1,mac_m5

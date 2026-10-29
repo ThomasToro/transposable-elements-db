@@ -197,4 +197,4 @@ Observaciones sobre la estimación previa:
 | Formato de k-mers | Conteos dispersos + `valid_windows` | Arreglo denso; frecuencias | `MODELO.md` (decisión 5) |
 | TEs más cortos que k | Documento con `valid_windows = 0`, `counts = {}` | No guardar el documento | `MODELO.md` (`kmers`) |
 | Cálculo de k-mers | numpy vectorizado, 1 proceso | Python puro (`Counter`); multiprocessing | `src/kmers.py`; `resultados/rendimiento_kmers.csv` |
-| Estrategia alternativa del benchmark | k-mers embebidos en `tes_embebidos` (mismo formato disperso) | — (en discusión) | `MODELO.md` (Pendientes, abierto) |
+| Estrategia alternativa del benchmark | k-mers embebidos en `tes_embebidos` (mismo formato disperso) | Un documento por TE con los 6 k; una colección por k | `MODELO.md` (decisión 4; Pendientes, cerrado) |

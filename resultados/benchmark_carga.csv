@@ -1,6 +1,4 @@
 estrategia,base,n_tes,n_docs,t_calculo_s,t_insercion_s,t_indices_s,repeticion,maquina
-coleccion_kmers,panteon_prueba,25,150,0.005,0.004,0.086,1,mac_m5
-embebido_en_tes,panteon_prueba_bench,25,25,0.005,0.006,0.036,1,mac_m5
 tes_y_secuencias,panteon,239946,479892,2.131,3.875,0.559,1,mac_m5
 coleccion_kmers,panteon,239946,1439676,123.129,49.927,22.374,1,mac_m5
 embebido_en_tes,panteon_bench,239946,239946,125.41,47.953,11.696,1,mac_m5
