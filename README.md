@@ -216,14 +216,20 @@ los notebooks 06.
 Para restaurarlos, descarguen los `.tar` en la raíz del repositorio y ejecuten desde ahí. `--drop` borra antes
 las colecciones que ya existan con el mismo nombre.
 
+**Importante:** los `.tar` se crearon en macOS y traen archivos `._*` (metadatos de macOS, por ejemplo
+`._tes_embebidos.bson.gz`). Hay que borrarlos después de extraer y antes de `mongorestore`; si no, `mongorestore`
+intenta restaurarlos como colecciones (por ejemplo `._tes_embebidos`).
+
 macOS y Linux:
 
 ```
 mkdir -p dump
 tar -xf panteon_kmers.tar -C dump/
-mongorestore --gzip --drop dump/panteon_kmers
 # solo para el benchmark:
 tar -xf panteon_bench.tar -C dump/
+find dump -name '._*' -delete
+mongorestore --gzip --drop dump/panteon_kmers
+# solo para el benchmark:
 mongorestore --gzip --drop dump/panteon_bench
 ```
 
@@ -232,9 +238,11 @@ Windows (PowerShell; `tar` viene incluido desde Windows 10):
 ```
 New-Item -ItemType Directory -Force dump
 tar -xf panteon_kmers.tar -C dump
-mongorestore --gzip --drop dump\panteon_kmers
 # solo para el benchmark:
 tar -xf panteon_bench.tar -C dump
+Get-ChildItem dump -Recurse -Filter '._*' | Remove-Item
+mongorestore --gzip --drop dump\panteon_kmers
+# solo para el benchmark:
 mongorestore --gzip --drop dump\panteon_bench
 ```
 

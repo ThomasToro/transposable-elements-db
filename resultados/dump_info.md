@@ -47,6 +47,25 @@ validador de `tes` más el perfil `kmers.k1`–`k6`. Los validadores van en los 
 `mongorestore` los vuelve a crear. La verificación de arriba se hizo con un dump anterior; los conteos de
 documentos no cambiaron y `especies`, `tes` y `secuencias` no se recargaron, así que no se repitió la restauración.
 
+### Verificación de los dumps definitivos (2026-10-29)
+
+Se restauraron los dos dumps definitivos en bases temporales, sin tocar `panteon` ni `panteon_bench`
+(`mongorestore --gzip --nsFrom "panteon.*" --nsTo "panteon_verif.*" dump/panteon_kmers` y lo mismo con
+`panteon_bench` → `panteon_bench_verif`). Se compararon con las originales y después se borraron las dos bases `_verif`.
+Antes se comprobó que los archivos de las carpetas `dump/panteon_kmers` y `dump/panteon_bench` tienen el mismo
+tamaño que los de los `.tar`.
+
+| Base restaurada | Colección | Documentos (original / restaurada) | Índices | Validador `$jsonSchema` |
+| --- | --- | --- | --- | --- |
+| `panteon_verif` | `especies` | 2.790 / 2.790 | 2, iguales | igual |
+| `panteon_verif` | `tes` | 239.946 / 239.946 | 5, iguales | igual |
+| `panteon_verif` | `secuencias` | 239.946 / 239.946 | 1, igual | igual (sin validador) |
+| `panteon_verif` | `kmers` | 1.439.676 / 1.439.676 | 4, iguales | igual |
+| `panteon_bench_verif` | `tes_embebidos` | 239.946 / 239.946 | 2, iguales | igual |
+
+Resultado: todo igual, con 0 documentos fallidos. La restauración tardó 64 s (`panteon_kmers`) y 58 s
+(`panteon_bench`), incluida la reconstrucción de índices.
+
 ## Cómo restaurar (para el README)
 
 Requiere MongoDB 7.0 y MongoDB Database Tools. Descargar los `.tar` de la
@@ -55,15 +74,26 @@ raíz del repositorio y ejecutar:
 
 ```bash
 mkdir -p dump
+tar -xf panteon_kmers.tar -C dump/
+tar -xf panteon_bench.tar -C dump/
+
+# Borrar los metadatos de macOS que traen los .tar (ver la nota de abajo)
+find dump -name '._*' -delete
 
 # Base principal: especies, tes, secuencias y kmers
-tar -xf panteon_kmers.tar -C dump/
 mongorestore --gzip --drop dump/panteon_kmers
 
 # Base del benchmark: tes_embebidos
-tar -xf panteon_bench.tar -C dump/
 mongorestore --gzip --drop dump/panteon_bench
 ```
+
+**Archivos `._*`:** los `.tar` se crearon con el `tar` de macOS, que agrega archivos `._*` de metadatos
+(AppleDouble), por ejemplo `._tes_embebidos.bson.gz`. Al extraerlos fuera de macOS quedan como archivos sueltos y
+`mongorestore` intenta restaurarlos como una colección (`._tes_embebidos`), comprobado el 2026-10-29 con
+`mongorestore --dryRun`. Hay que borrarlos después de extraer y antes de `mongorestore`:
+
+- macOS y Linux: `find dump -name '._*' -delete`
+- Windows (PowerShell): `Get-ChildItem dump -Recurse -Filter '._*' | Remove-Item`
 
 `--drop` borra antes cada colección que ya exista con el mismo nombre. Para restaurar con otro nombre de
 base (por ejemplo, para no tocar una `panteon` existente):
