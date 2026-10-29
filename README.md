@@ -45,10 +45,13 @@ Cada integrante instala en su computador:
 2. **MongoDB 7.0** (todo el equipo usa la misma versión para que los dumps sean compatibles):
    - **Windows:** instalar MongoDB Community Server **7.0** desde la página de descargas de MongoDB,
      eligiendo la versión 7.0 (no la 8.x), y marcar la opción de instalarlo como servicio.
+   - **macOS:** con Homebrew: `brew tap mongodb/brew`, `brew install mongodb-community@7.0` y
+     `brew services start mongodb-community@7.0`.
    - **Linux:** usar Docker (ver abajo). MongoDB 8.x no arranca en kernels de Linux entre 6.19 y 7.0.13
      ([SERVER-125742](https://jira.mongodb.org/browse/SERVER-125742)); la 7.0 funciona en cualquier kernel.
-3. **MongoDB Database Tools** (`mongodump` y `mongorestore`). En Windows se instalan aparte y hay que
-   agregar su carpeta `bin` al PATH.
+3. **MongoDB Database Tools** (`mongodump` y `mongorestore`) y **MongoDB Shell** (`mongosh`, solo para
+   verificar la instalación). En Windows se instalan aparte y hay que agregar su carpeta `bin` al PATH; en
+   macOS, `brew install mongodb-database-tools mongosh`.
 4. **Git**
 5. **MongoDB Compass** (opcional, para revisar los datos). Se conecta con `mongodb://localhost:27017`.
 
@@ -76,7 +79,8 @@ mongosh --eval "db.version()"
 mongodump --version
 ```
 
-`db.version()` debe empezar por `7.0`.
+`db.version()` debe empezar por `7.0`. Con Docker, `mongosh` está dentro del contenedor:
+`docker exec mongo7 mongosh --eval "db.version()"`.
 
 ## Instalación
 
@@ -119,23 +123,66 @@ Los datos no se suben al repositorio por su tamaño. Se descargan de Zenodo
 - `PanTEon_Database_v1.6.1.fasta` (~990 MB)
 - `PanTEon_Database_metadata_v1.6.1.csv` (~370 kB)
 
-En Linux o macOS, desde la carpeta del proyecto:
+En Linux o macOS, desde la carpeta del proyecto (macOS no trae `wget`; `curl` viene en ambos):
 
 ```
 cd data
-wget -O PanTEon_Database_v1.6.1.fasta "https://zenodo.org/records/19372616/files/PanTEon_Database_v1.6.1.fasta?download=1"
-wget -O PanTEon_Database_metadata_v1.6.1.csv "https://zenodo.org/records/19372616/files/PanTEon_Database_metadata_v1.6.1.csv?download=1"
+curl -L -o PanTEon_Database_v1.6.1.fasta "https://zenodo.org/records/19372616/files/PanTEon_Database_v1.6.1.fasta?download=1"
+curl -L -o PanTEon_Database_metadata_v1.6.1.csv "https://zenodo.org/records/19372616/files/PanTEon_Database_metadata_v1.6.1.csv?download=1"
 cd ..
 ```
 
 En Windows, descárguenlos desde la página de Zenodo y muévanlos a `data/`. Después de copiarlos,
 `git status` no debe mostrarlos (el `.gitignore` los excluye).
 
+### Verificar la descarga
+
+Comparen el tamaño y el MD5 de cada archivo con estos valores:
+
+| Archivo | Tamaño (bytes) | MD5 |
+| --- | --- | --- |
+| `PanTEon_Database_v1.6.1.fasta` | 992.180.168 | `222bfd9899d866ca06cda062fc3c52ff` |
+| `PanTEon_Database_metadata_v1.6.1.csv` | 371.391 | `7f4ea0ef9c242d2ccf4c0ee723c9f08c` |
+
+Desde la carpeta del proyecto:
+
+```
+# macOS
+md5 data/PanTEon_Database_v1.6.1.fasta data/PanTEon_Database_metadata_v1.6.1.csv
+ls -l data/
+
+# Linux
+md5sum data/PanTEon_Database_v1.6.1.fasta data/PanTEon_Database_metadata_v1.6.1.csv
+ls -l data/
+
+# Windows (PowerShell)
+Get-FileHash -Algorithm MD5 data\PanTEon_Database_v1.6.1.fasta, data\PanTEon_Database_metadata_v1.6.1.csv
+Get-ChildItem data | Select-Object Name, Length
+```
+
+Windows muestra el hash en mayúsculas (`222BFD98…`); es el mismo valor, la comparación no distingue
+mayúsculas. Si el tamaño o el MD5 no coinciden, la descarga quedó incompleta: bórrenla y vuelvan a descargar.
+
 ## Orden de ejecución
 
-Este orden aplica para reconstruir el proyecto completo desde cero, una vez terminados los notebooks
-(por ejemplo, para verificar la reproducibilidad antes de entregar). Mientras se trabaja no hace falta
-seguirlo: cada integrante avanza en su notebook en paralelo, usando los datos de prueba o los dumps.
+Para reproducir el proyecto desde cero:
+
+1. **Obtener la base**, de una de dos formas:
+   - **A. Restaurar el dump** (unos minutos): ver **Respaldo de la base (dump)**.
+   - **B. Reconstruirla con el pipeline** (necesita los datos de `data/`): ejecutar `01` → `02` → `03`.
+     El 03 crea `panteon.kmers` y también `panteon_bench.tes_embebidos` (estrategia alternativa del benchmark).
+2. **Consultas y figuras:** `04` y `05` (solo necesitan la base `panteon`).
+3. **Benchmarks:** los dos `06`. Necesitan además `panteon_bench`: con la opción A hay que restaurar también
+   `panteon_bench.tar`. El `06_benchmark_carga_espacio` lee los tiempos que el 03 guardó en
+   `resultados/benchmark_carga.csv`.
+
+Los `00` son exploración de los archivos de `data/` y no cargan nada en MongoDB; se pueden saltar.
+Ejecuten cada notebook con *Kernel → Restart & Run All* desde la carpeta `notebooks/` (las rutas son
+relativas, como `../data/`).
+
+Si vuelven a ejecutar el 03 o los 06 en otro equipo, cambien antes `MAQUINA` en la primera celda de código
+(por ejemplo `"pc_windows"`): los resultados se agregan a los CSV de `resultados/` por máquina, y con el
+mismo valor (`mac_m5`) reemplazarían las mediciones del artículo.
 
 | # | Notebook | Qué hace | Responsable |
 | --- | --- | --- | --- |
@@ -156,22 +203,43 @@ seguirlo: cada integrante avanza en su notebook en paralelo, usando los datos de
 Los dumps no van en el repositorio; se comparten por Google Drive como `.tar` (los `.bson.gz` de adentro ya
 van comprimidos). Detalle de tamaños, verificación y comandos: `resultados/dump_info.md`.
 
-| Archivo | Contenido |
-| --- | --- |
-| `panteon_kmers.tar` | Base `panteon`: `especies`, `tes`, `secuencias` y `kmers` |
-| `panteon_bench.tar` | Base `panteon_bench`: `tes_embebidos` (solo para el benchmark) |
+Carpeta de Google Drive: https://drive.google.com/drive/folders/1dralHzwDjck0lAboxCMs4UODyhWXVpbY
 
-Enlaces: _(pendiente)_
+| Archivo | Tamaño | Contenido |
+| --- | --- | --- |
+| `panteon_kmers.tar` | ~2,1 GB | Base `panteon`: `especies`, `tes`, `secuencias` y `kmers` |
+| `panteon_bench.tar` | ~1,9 GB | Base `panteon_bench`: `tes_embebidos` (solo para el benchmark) |
 
-Para restaurarlos (desde la raíz del repositorio, con los `.tar` descargados ahí):
+La mayoría solo necesita `panteon_kmers.tar` (notebooks 04 y 05). `panteon_bench.tar` solo hace falta para
+los notebooks 06.
+
+Para restaurarlos, descarguen los `.tar` en la raíz del repositorio y ejecuten desde ahí. `--drop` borra antes
+las colecciones que ya existan con el mismo nombre.
+
+macOS y Linux:
 
 ```
 mkdir -p dump
 tar -xf panteon_kmers.tar -C dump/
 mongorestore --gzip --drop dump/panteon_kmers
+# solo para el benchmark:
 tar -xf panteon_bench.tar -C dump/
 mongorestore --gzip --drop dump/panteon_bench
 ```
+
+Windows (PowerShell; `tar` viene incluido desde Windows 10):
+
+```
+New-Item -ItemType Directory -Force dump
+tar -xf panteon_kmers.tar -C dump
+mongorestore --gzip --drop dump\panteon_kmers
+# solo para el benchmark:
+tar -xf panteon_bench.tar -C dump
+mongorestore --gzip --drop dump\panteon_bench
+```
+
+Para comprobar que quedó bien, el notebook 05 cuenta los documentos de cada colección al empezar:
+`especies` 2.790, `tes` 239.946, `secuencias` 239.946 y `kmers` 1.439.676.
 
 Para generarlos:
 
@@ -184,6 +252,21 @@ cd dump && tar -cf panteon_kmers.tar panteon_kmers && tar -cf panteon_bench.tar 
 **Reconstruir desde cero (sin dump):** ejecutar en orden `01_pipeline_csv_especies.ipynb` →
 `02_pipeline_fasta_tes.ipynb` (con `RECONSTRUIR_TODO = True`) → `03_pipeline_kmers.ipynb`. El 02 se detiene
 si `kmers` o `tes_embebidos` ya tienen datos, porque recargar `tes` cambia sus `_id`.
+
+## Pruebas
+
+Las funciones de `src/` (k-mers, normalización de especies y registro de benchmarks) tienen pruebas con
+pytest. No necesitan MongoDB ni los datos. Desde la raíz del repositorio, con el entorno activo:
+
+```
+python -m pytest -q
+```
+
+## Artículo
+
+El artículo (revista *Bioinformatics*, en español) está en `articulo/`: `main.pdf` compilado y sus fuentes
+`main.tex` y `references.bib`, con la clase y el estilo de citas de OUP. Usa las figuras de `figuras/`.
+La revista elegida y las normas aplicadas están en `JOURNAL.md`.
 
 ## Estructura del repositorio
 

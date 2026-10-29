@@ -6,6 +6,8 @@ Tamaños en MB de 1024² bytes.
 
 ## Archivos para Google Drive
 
+Carpeta: https://drive.google.com/drive/folders/1dralHzwDjck0lAboxCMs4UODyhWXVpbY
+
 | Archivo | Tamaño | Contenido |
 | --- | --- | --- |
 | `dump/panteon_kmers.tar` | 2.111,7 MB (2.214.315.008 bytes) | Base `panteon`: `especies`, `tes`, `secuencias`, `kmers` |
@@ -47,8 +49,9 @@ documentos no cambiaron y `especies`, `tes` y `secuencias` no se recargaron, as�
 
 ## Cómo restaurar (para el README)
 
-Requiere MongoDB 7.0 y MongoDB Database Tools. Descargar los `.tar` de Google Drive en la raíz del
-repositorio y ejecutar:
+Requiere MongoDB 7.0 y MongoDB Database Tools. Descargar los `.tar` de la
+[carpeta de Google Drive](https://drive.google.com/drive/folders/1dralHzwDjck0lAboxCMs4UODyhWXVpbY) en la
+raíz del repositorio y ejecutar:
 
 ```bash
 mkdir -p dump
