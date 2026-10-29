@@ -5,6 +5,7 @@ data/*
 # Dumps de MongoDB (se comparten por Google Drive)
 dump/
 *.archive
+*.tar
 
 # Jupyter y Python
 .ipynb_checkpoints/

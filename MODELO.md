@@ -53,7 +53,7 @@ panteon_bench.tes_embebidos (1:1 con tes, mismo _id; solo benchmark)
    | Documentos | 1.439.676 | 239.946 |
    | Carga total (media ± DE, s) | 197,7 ± 2,0 | 186,8 ± 1,8 |
    | Cálculo / inserción / índices (s) | 125,5 / 50,2 / 22,0 | 125,8 / 47,9 / 13,1 |
-   | `storageSize` (MB) | 3.030,6 | 3.037,0 (incluye la copia de `tes`, 12,1 MB) |
+   | `storageSize` (MB) | 3.030,6 | 3.037,1 (incluye la copia de `tes`, 12,1 MB) |
    | `totalIndexSize` (MB) | 57,7 | 5,2 |
 
    La embebida carga un 5,5 % más rápido; la diferencia sale sobre todo de la creación de índices (8,9 s)

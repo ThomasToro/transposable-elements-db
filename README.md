@@ -9,25 +9,25 @@ de cada especie y sus perfiles de k-mers (k = 1 a 6).
 
 | Integrante | Responsabilidad principal |
 | --- | --- |
-| Thomas | Modelo de datos, entorno y repositorio, limpieza del FASTA, carga de `tes` y `secuencias`, benchmark de consultas e índices |
-| Juan Arias | Exploración y limpieza del CSV, carga de `especies`, cruce FASTA–CSV, carga de `tes` y `secuencias`, cálculo y carga de k-mers, benchmark de carga y espacio |
-| Juan Hernandez | Consultas 1–9, 12–15 y las dos consultas propias |
-| Isabela Murillo | Figuras, bibliotecas `.fasta` (consultas 10 y 11) y base del artículo |
+| Thomas Alejandro Toro Herrera | Modelo de datos, entorno y repositorio, exploración del FASTA, revisión del notebook 02, benchmark de consultas e índices |
+| Juan Sebastián Arias Rueda | Exploración y limpieza del CSV, carga de `especies`, cruce FASTA–CSV, carga de `tes` y `secuencias`, cálculo y carga de k-mers, benchmark de carga y espacio |
+| Juan Esteban Hernández Martínez | Consultas 1–9, 12–15 y las dos consultas propias |
+| Isabela Quintero Murillo | Revista y plantilla LaTeX, `JOURNAL.md`, introducción, trabajo relacionado, referencias, bibliotecas `.fasta` (consultas 10 y 11) y las cuatro figuras |
 
 ## Estado del proyecto
 
 | Parte | Notebook o archivo | Responsable | Estado |
 | --- | --- | --- | --- |
-| Exploración del FASTA | `00_exploracion.ipynb` | Thomas | Terminado |
-| Exploración del CSV | `00_exploracion_csv.ipynb` | Juan Arias | Terminado |
-| Pipeline: `especies` y cruce | `01_pipeline_csv_especies.ipynb` | Juan Arias | Terminado |
-| Pipeline: `tes` y `secuencias` | `02_pipeline_fasta_tes.ipynb` | Juan Arias | Terminado |
-| Pipeline: k-mers | `03_pipeline_kmers.ipynb` | Juan Arias | Terminado |
-| Benchmark de carga y espacio | `06_benchmark_carga_espacio.ipynb` | Juan Arias | Terminado |
-| Benchmark de consultas | `06_benchmark_consultas.ipynb` | Thomas | En curso: ejecutado y conclusión en `MODELO.md`; falta la interpretación en el notebook |
-| Consultas 1–9, 12–15 y propias | `04_consultas.ipynb` | Juan Hernandez | Pendiente |
-| Bibliotecas `.fasta` (consultas 10 y 11) y figuras | `05_bibliotecas_y_figuras.ipynb` | Isabela Murillo | Pendiente |
-| Revista y artículo | `JOURNAL.md`, `articulo/` | Isabela Murillo | Pendiente |
+| Exploración del FASTA | `00_exploracion.ipynb` | Thomas Alejandro Toro Herrera | Terminado |
+| Exploración del CSV | `00_exploracion_csv.ipynb` | Juan Sebastián Arias Rueda | Terminado |
+| Pipeline: `especies` y cruce | `01_pipeline_csv_especies.ipynb` | Juan Sebastián Arias Rueda | Terminado |
+| Pipeline: `tes` y `secuencias` | `02_pipeline_fasta_tes.ipynb` | Juan Sebastián Arias Rueda | Terminado |
+| Pipeline: k-mers | `03_pipeline_kmers.ipynb` | Juan Sebastián Arias Rueda | Terminado |
+| Benchmark de carga y espacio | `06_benchmark_carga_espacio.ipynb` | Juan Sebastián Arias Rueda | Terminado |
+| Benchmark de consultas | `06_benchmark_consultas.ipynb` | Thomas Alejandro Toro Herrera | Terminado |
+| Consultas 1–9, 12–15 y propias | `04_consultas.ipynb` | Juan Esteban Hernández Martínez | Terminado |
+| Bibliotecas `.fasta` (consultas 10 y 11) y figuras | `05_bibliotecas_y_figuras.ipynb` | Isabela Quintero Murillo | Terminado |
+| Revista y artículo | `JOURNAL.md`, `articulo/` | Isabela Quintero Murillo | Terminado |
 
 ## Datos de prueba
 
@@ -139,15 +139,15 @@ seguirlo: cada integrante avanza en su notebook en paralelo, usando los datos de
 
 | # | Notebook | Qué hace | Responsable |
 | --- | --- | --- | --- |
-| 00 | `00_exploracion.ipynb` | Exploración del FASTA y registro de inconsistencias | Thomas |
-| 00 | `00_exploracion_csv.ipynb` | Exploración del CSV y registro de inconsistencias | Juan Arias |
-| 01 | `01_pipeline_csv_especies.ipynb` | Limpieza del CSV y carga de `especies` | Juan Arias |
-| 02 | `02_pipeline_fasta_tes.ipynb` | Limpieza del FASTA, cruce y carga de `tes` y `secuencias` | Juan Arias |
-| 03 | `03_pipeline_kmers.ipynb` | Cálculo y carga de k-mers | Juan Arias |
-| 04 | `04_consultas.ipynb` | Consultas 1–9, 12–15 y propias | Juan Hernandez |
-| 05 | `05_bibliotecas_y_figuras.ipynb` | Consultas 10 y 11, bibliotecas `.fasta` y figuras | Isabela Murillo |
-| 06 | `06_benchmark_carga_espacio.ipynb` | Benchmark de carga y espacio (`collStats`) | Juan Arias |
-| 06 | `06_benchmark_consultas.ipynb` | Benchmark de consultas con y sin índices (`explain`) | Thomas |
+| 00 | `00_exploracion.ipynb` | Exploración del FASTA y registro de inconsistencias | Thomas Alejandro Toro Herrera |
+| 00 | `00_exploracion_csv.ipynb` | Exploración del CSV y registro de inconsistencias | Juan Sebastián Arias Rueda |
+| 01 | `01_pipeline_csv_especies.ipynb` | Limpieza del CSV y carga de `especies` | Juan Sebastián Arias Rueda |
+| 02 | `02_pipeline_fasta_tes.ipynb` | Limpieza del FASTA, cruce y carga de `tes` y `secuencias` | Juan Sebastián Arias Rueda |
+| 03 | `03_pipeline_kmers.ipynb` | Cálculo y carga de k-mers | Juan Sebastián Arias Rueda |
+| 04 | `04_consultas.ipynb` | Consultas 1–9, 12–15 y propias | Juan Esteban Hernández Martínez |
+| 05 | `05_bibliotecas_y_figuras.ipynb` | Consultas 10 y 11, bibliotecas `.fasta` y figuras | Isabela Quintero Murillo |
+| 06 | `06_benchmark_carga_espacio.ipynb` | Benchmark de carga y espacio (`collStats`) | Juan Sebastián Arias Rueda |
+| 06 | `06_benchmark_consultas.ipynb` | Benchmark de consultas con y sin índices (`explain`) | Thomas Alejandro Toro Herrera |
 
 `especies` se carga antes que `tes` porque cada TE guarda el `_id` de su especie.
 
@@ -236,8 +236,8 @@ git push
 
 - Cada integrante trabaja en sus propios notebooks; no editen el notebook de otra persona sin avisar,
   porque Git maneja mal los conflictos en archivos `.ipynb`.
-- `README.md` y `MODELO.md` los edita Thomas. Si necesitan un cambio, avísenle.
-- Antes de hacer commit de un notebook, limpien las salidas pesadas (`Kernel → Restart & Clear Output`).
+- `README.md` y `MODELO.md` los edita Thomas Alejandro Toro Herrera. Si necesitan un cambio, avísenle.
+- Antes de hacer commit de un notebook, ejecútenlo completo (Kernel → Restart & Run All) y conserven las salidas: el enunciado pide mostrar el resultado de cada consulta.
 - Nunca suban el FASTA, el CSV ni los dumps. GitHub rechaza archivos de más de 100 MB.
 - Si una biblioteca `.fasta` supera los 100 MB, súbanla comprimida o usen Git LFS.
 - Cualquier cambio en nombres de colecciones o campos se discute antes y se actualiza en `MODELO.md`.
