@@ -1,0 +1,625 @@
+% =============================================================================
+% PanTEon en MongoDB - articulo para Bioinformatics (Oxford University Press)
+% Tipo de articulo: Original Paper. Idioma: espanol.
+% Plantilla oficial: OUP General Template (clase oup-authoring-template).
+% Ejemplo completo de la plantilla (tablas, figuras, citas):
+%   https://www.overleaf.com/latex/templates/zjrmbrmtrytg
+%
+% Reglas de la revista que hay que respetar al escribir (ver JOURNAL.md):
+%  - Resumen estructurado, maximo 150 palabras, sin citas ni ecuaciones.
+%  - Citas autor-anio: \citet{clave} -> "Autor et al. (2026)", \citep{clave} -> "(Autor et al., 2026)".
+%  - Figuras: ancho de una columna (86 mm, \columnwidth) o dos (178 mm, figure*),
+%    fondo blanco, sin capturas de pantalla, con "Texto alternativo:" debajo de la leyenda.
+%  - Tablas: tabular reales (nunca imagenes), numeradas, titulo breve,
+%    notas al pie con letras minusculas; las anchas en table*.
+%  - Cifras con coma decimal y punto de miles (0,114; 239.946).
+%  - Nombres de campos y colecciones en \texttt{}.
+%
+% Cada seccion tiene un comentario:  % RESPONSABLE: ... | CONTENIDO: ... | PALABRAS: ...
+% Lo que falta se marca con \pendiente{...} (sale en rojo en el PDF).
+% =============================================================================
+
+% namedate = citas autor-anio, como exige la revista. No cambiar la clase ni las opciones.
+\documentclass[unnumsec,namedate,webpdf,contemporary,large]{oup-authoring-template}
+
+% --- Espanol -----------------------------------------------------------------
+% es-tabla: "Tabla" en lugar de "Cuadro"; es-noshorthands: evita choques con la clase.
+\usepackage[spanish,es-tabla,es-noshorthands]{babel}
+
+% --- Paquetes y comandos del equipo ------------------------------------------
+\usepackage{xcolor}
+\newcommand{\pendiente}[1]{\textcolor{red}{[PENDIENTE: #1]}}
+
+% Incluye una figura si el archivo ya esta en el proyecto; si no, deja un recuadro
+% de pendiente (asi el documento compila aunque falten figuras).
+% Uso: \figuraopcional{figuras/archivo.png}{ancho}{texto del pendiente}
+% Busca primero junto al .tex (Overleaf) y luego en ../ (carpeta articulo/ del repositorio).
+\newcommand{\figuraopcional}[3]{%
+  \IfFileExists{#1}%
+    {\includegraphics[width=#2]{#1}}%
+    {\IfFileExists{../#1}%
+      {\includegraphics[width=#2]{../#1}}%
+      {\fbox{\parbox[c][3.5cm][c]{0.92#2}{\centering\pendiente{#3}\\[2pt]\footnotesize\texttt{\detokenize{#1}}}}}}}
+
+% Texto alternativo obligatorio debajo de la leyenda de cada figura.
+\newcommand{\textoalternativo}[1]{\par\vspace{2pt}{\footnotesize\textit{Texto alternativo:} #1}}
+
+% La clase escribe "Abstract" fijo en el titulo del resumen; se cambia a "Resumen"
+% sin tocar la clase (aparece en varias variantes de la plantilla).
+\usepackage{etoolbox}
+\makeatletter
+% Reemplaza todas las apariciones, una por una, hasta que no quede ninguna.
+\def\es@resumen{\patchcmd{\@maketitle}{Abstract}{Resumen}{\es@resumen}{}}
+\es@resumen
+\makeatother
+
+\graphicspath{{figuras/}}
+\newcommand{\societylogo}{}   % la clase lo necesita; se deja vacio
+\raggedbottom  % evita espacios estirados entre parrafos cuando hay figuras grandes
+
+\begin{document}
+
+\journaltitle{Bioinformatics}
+\DOI{}
+\copyrightyear{2026}
+\pubyear{2026}
+\access{}
+\appnotes{Original Paper}
+\firstpage{1}
+
+% =============================================================================
+% TITULO, AUTORES Y AFILIACION
+% RESPONSABLE: Isabela | CONTENIDO: titulo en espanol (el equipo elige una opcion) | PALABRAS: -
+% =============================================================================
+\title[PanTEon en MongoDB]{Dise\~no y evaluaci\'on de una base de datos en MongoDB para elementos transponibles de PanTEon}
+
+\author[1]{Thomas Alejandro Toro Herrera}
+\author[1]{Juan Sebasti\'an Arias Rueda}
+\author[1]{Juan Esteban Hern\'andez Mart\'inez}
+\author[1]{Isabela Quintero Murillo}
+
+\address[1]{\orgdiv{Ingenier\'ia de Sistemas}, \orgname{Universidad Aut\'onoma de Manizales}, \orgaddress{\state{Manizales}, \country{Colombia}}}
+
+% =============================================================================
+% RESUMEN ESTRUCTURADO
+% =============================================================================
+\abstract{
+\textbf{Motivaci\'on:} Las bases de elementos transponibles (TEs) se distribuyen como archivos planos, que dificultan las consultas entre especies y no incluyen los perfiles de k-mers que usan los clasificadores. Aqu\'i se dise\~na y eval\'ua una base en MongoDB para los 239.946 TEs de 2.790 especies de PanTEon.\\
+\textbf{Resultados:} El modelo usa cuatro colecciones (especies, TEs, secuencias y k-mers de $k = 1$ a 6), combina referencias con campos copiados y se carga con un pipeline reproducible en Python. Responde 17 consultas y genera bibliotecas FASTA por especie y por reino. Frente a embeber los k-mers en cada TE, guardarlos en una colecci\'on aparte ocupa el mismo espacio en disco y hace entre 2,5 y 4,5 veces m\'as r\'apidas las consultas que no usan k-mers.\\
+\textbf{Disponibilidad e implementaci\'on:} C\'odigo, notebooks y resultados en \url{https://github.com/ThomasToro/transposable-elements-db}.\\
+\textbf{Contacto:} \href{mailto:isaquinteromurillo1304@gmail.com}{isaquinteromurillo1304@gmail.com}\\
+\textbf{Informaci\'on suplementaria:} Notebooks con el c\'odigo y el resultado de cada consulta en el repositorio.}
+
+\keywords[Palabras clave]{elementos transponibles, MongoDB, bases de datos NoSQL, k-mers, PanTEon}
+
+\maketitle
+
+% =============================================================================
+% 1. INTRODUCCION
+% RESPONSABLE: Isabela | CONTENIDO: que son los TEs, por que su almacenamiento y
+% analisis es un reto, objetivo del trabajo | PALABRAS: 400
+% Citas previstas: wicker2007unified, orozcoarias2026panteon, panteon2026database
+% =============================================================================
+\section{Introducci\'on}
+
+Los elementos transponibles (TEs) son secuencias de ADN capaces de moverse o copiarse dentro del genoma. Est\'an presentes en casi todos los eucariotas y se clasifican de forma jer\'arquica en clase, orden y superfamilia \citep{wicker2007unified}. Los TEs de clase~I, o retrotransposones, se copian a trav\'es de un intermediario de ARN, e incluyen los \'ordenes LTR, LINE y SINE. Los de clase~II, o transposones de ADN, se mueven sin ese intermediario, como los TIR y los Helitron. Esa misma jerarqu\'ia aparece en el encabezado de cada secuencia de los datos usados en este trabajo, con la forma \texttt{CLASE/ORDEN/SUPERFAMILIA}.
+
+Almacenar y analizar estos datos no es trivial. El conjunto usado re\'une 239.946 TEs de 2.790 especies de animales, plantas y hongos, y su informaci\'on est\'a repartida en tres fuentes: las secuencias en un archivo FASTA, la taxonom\'ia de cada especie en un CSV de metadatos y los perfiles de k-mers, que se calcularon en este trabajo. Los k-mers multiplican el volumen: con $k$ de 1 a 6 hay 1.439.676 perfiles, que ocupan unos 8~GB sin comprimir. Adem\'as, los datos reales tienen inconsistencias, como 31.600 identificadores con un formato distinto al resto y nombres de especie que no coinciden entre el FASTA y el CSV. Con archivos planos, preguntas sencillas como cu\'antos TEs de cada orden hay en cada reino obligan a recorrer y cruzar los archivos completos.
+
+Estos datos provienen de PanTEon, un marco entre reinos para guiar el dise\~no de clasificadores de TEs \citep{orozcoarias2026panteon}. Su base de datos es p\'ublica en Zenodo, versi\'on 1.6.1, con licencia CC BY 4.0 \citep{panteon2026database}.
+
+En este trabajo se dise\~na, implementa y eval\'ua una base de datos documental en MongoDB \citep{mongodb7} para los datos de PanTEon. Las contribuciones son tres: (1) un modelo de datos que integra secuencias, taxonom\'ia y k-mers, con cada decisi\'on justificada; (2) un pipeline reproducible en Python que limpia, valida y carga los datos; y (3) una evaluaci\'on experimental de dos formas de guardar los k-mers, en una colecci\'on aparte o embebidos en cada TE. El art\'iculo se organiza as\'i: la secci\'on de trabajo relacionado revisa c\'omo organizan esta informaci\'on otras bases de datos; Materiales y m\'etodos describe los datos, el modelo, el pipeline y los experimentos; Resultados presenta las consultas, las figuras y el benchmark; y la Discusi\'on analiza las ventajas y limitaciones del dise\~no.
+
+\paragraph{Conceptos b\'asicos.} Para seguir el art\'iculo bastan estas ideas:
+\begin{itemize}
+\item \textbf{k-mer.} Es cada pedazo de longitud $k$ que se obtiene al recorrer una secuencia de a una letra. Por ejemplo, \texttt{ATGCA} tiene los 2-mers \texttt{AT}, \texttt{TG}, \texttt{GC} y \texttt{CA}. El \emph{perfil de k-mers} de una secuencia cuenta cu\'antas veces aparece cada uno; con $k = 6$ hay hasta $4^6 = 4.096$ k-mers posibles.
+\item \textbf{Documento y colecci\'on.} MongoDB guarda los datos como documentos, parecidos a un JSON, y agrupa los documentos del mismo tipo en colecciones, que equivalen a las tablas de una base relacional.
+\item \textbf{Embebido o referencia.} Un dato relacionado se puede guardar \emph{embebido}, dentro del mismo documento, o en otra colecci\'on, unido por una \emph{referencia} (el \texttt{\_id} del otro documento). Para juntar colecciones en una consulta se usa \texttt{\$lookup}.
+\item \textbf{\'Indice.} Es una estructura que permite encontrar documentos sin recorrer toda la colecci\'on, como el \'indice de un libro. Con \texttt{explain} se ve si una consulta us\'o un \'indice (IXSCAN) o recorri\'o todos los documentos (COLLSCAN).
+\item \textbf{Validaci\'on de esquema.} Con \texttt{\$jsonSchema}, MongoDB rechaza los documentos que no cumplen unas reglas, por ejemplo un campo obligatorio que falta.
+\end{itemize}
+
+% =============================================================================
+% 2. TRABAJO RELACIONADO
+% RESPONSABLE: Isabela | CONTENIDO: como organizan esta informacion otras bases de
+% datos (PanTEon, Dfam, Repbase u otras) | PALABRAS: 350
+% Citas previstas: orozcoarias2026panteon, storer2021dfam, bao2015repbase,
+% flynn2020repeatmodeler2, orozcoarias2024mchelper
+% =============================================================================
+\section{Trabajo relacionado}
+
+Repbase es una de las bases de referencia de elementos repetitivos en eucariotas. Re\'une secuencias consenso curadas, organizadas por grupo taxon\'omico y distribuidas como bibliotecas en archivos \citep{bao2015repbase}. En los datos de PanTEon, ocho identificadores de \textit{Chlamydomonas reinhardtii} provienen de Repbase.
+
+Dfam es un recurso comunitario de familias de TEs \citep{storer2021dfam}. Cada familia tiene una secuencia consenso, un modelo de perfil (HMM), una clasificaci\'on y una taxonom\'ia asociada. Su uso principal es anotar genomas, para lo cual las familias se descargan como archivos HMM o FASTA. En PanTEon, 386 especies tienen como fuente Dfam y 31.592 identificadores conservan su nombre original de Dfam.
+
+Para los genomas que no est\'an en estas bases, las bibliotecas se construyen de forma autom\'atica. RepeatModeler2 descubre familias de TEs \textit{de novo} en un genoma ensamblado \citep{flynn2020repeatmodeler2}, y MCHelper cura autom\'aticamente esas bibliotecas para reducir fragmentos, redundancia y clasificaciones err\'oneas \citep{orozcoarias2024mchelper}. PanTEon combina ambos or\'igenes: 2.404 especies con bibliotecas de RepeatModeler2 y MCHelper (RM2+MCH) y 386 de Dfam \citep{orozcoarias2026panteon}. Igual que las bases anteriores, se distribuye como archivos: un FASTA con las secuencias y un CSV con los metadatos.
+
+Estos recursos est\'an pensados para anotar genomas, no para consultas cruzadas sobre muchas especies, como comparar la composici\'on de \'ordenes entre reinos o recuperar todas las secuencias de una superfamilia en una especie. Tampoco guardan los perfiles de k-mers junto a las secuencias, aunque son una entrada habitual de los clasificadores de TEs basados en aprendizaje autom\'atico, que son el uso que motiva PanTEon. Este trabajo integra secuencias, taxonom\'ia y k-mers en una sola base consultable y eval\'ua experimentalmente c\'omo organizar los k-mers.
+
+% =============================================================================
+% 3. MATERIALES Y METODOS
+% =============================================================================
+\section{Materiales y m\'etodos}
+
+% -----------------------------------------------------------------------------
+% 3.1 DATOS Y PROBLEMAS DE CALIDAD
+% RESPONSABLE: Thomas (FASTA, ya escrito) + Juan Sebastian (CSV y cruce)
+% CONTENIDO: descripcion de los datos e inconsistencias, y como se resolvieron | PALABRAS: 450
+% -----------------------------------------------------------------------------
+\subsection{Datos y problemas de calidad}
+
+% --- Parte de Thomas (FASTA), texto revisado: no cambiar la redaccion ---
+Fuente: PanTEon Database v1.6.1, en Zenodo, licencia CC BY 4.0 \citep{panteon2026database}.
+
+El archivo FASTA cuenta con 239.946 registros en total, con encabezados de la forma \texttt{>ID\#CLASE/ORDEN/SUPERFAMILIA @Especie}.
+Durante la exploraci\'on se encontraron 2 clases (Clase I: 194.774; Clase II: 45.172), 11 \'ordenes y 65 superfamilias (66 nombres, porque la de ARNt aparece escrita como \texttt{TRNA} y como \texttt{tRNA}), y todas las clasificaciones tienen 3 niveles. Los TEs pertenecen a 2.790 especies. Las secuencias tienen una longitud de 81 a 19.926 nucle\'otidos (mediana 4.259, media 4.017) y un contenido GC medio de 0,43 (de 0,11 a 0,80).
+
+La Tabla~\ref{tab:calidad_fasta} resume los problemas encontrados y su decisi\'on.
+
+\begin{table}[!t]
+\caption{Problemas encontrados en el FASTA y su decisi\'on.\label{tab:calidad_fasta}}
+\footnotesize
+\begin{tabular}{@{}p{0.30\columnwidth}p{0.27\columnwidth}p{0.35\columnwidth}@{}}
+\toprule
+Problema & Casos & Decisi\'on \\
+\midrule
+Identificadores sin formato PDB + 8 d\'igitos & 31.600 (Dfam 31.592, Repbase 8) & Se conservan porque son los nombres originales de las bibliotecas \\
+Superfamilia igual al orden & 21.544: 5.589 correctos, 10.319 clasificados solo hasta orden, 5.636 ambiguos & Se cargan tal cual y se documentan \\
+Secuencias con min\'usculas & 208.354 (87~\%) & Se conserva la secuencia; GC y k-mers se calculan pasando la secuencia a may\'usculas \\
+Secuencias con N & 54.837 (23~\%; mediana 0,9~\% de N) & Se conservan; se excluyen del GC y de las ventanas de k-mers \\
+Especies que no cruzaban con el CSV & 4 especies, 533 TEs & Para el cruce se quita el punto de subsp./sp.; en la base se guarda el nombre original \\
+\botrule
+\end{tabular}
+\end{table}
+
+En lo que no hubo problema: no se encontraron encabezados mal formados, identificadores duplicados, clasificaciones vac\'ias o desconocidas (unknown, NA), caracteres distintos de A, C, G, T y N ni secuencias muy cortas para calcular 6-mers (la m\'as corta tiene 81 nucle\'otidos).
+
+Es importante aclarar que ning\'un dato original fue modificado; los problemas se resolvieron al calcular los atributos o al hacer el cruce, y est\'an todos documentados.
+
+% --- Parte de Juan Sebastian (CSV y cruce) ---
+% Insumos: resultados/insumos_articulo_juan.md, secciones 1 (limpieza del CSV) y 2 (cruce FASTA-CSV).
+% Sugerencia: tabla de problemas del CSV con el mismo formato que la Tabla de arriba.
+El CSV de metadatos tiene 2.790 filas y 13 columnas, de las que se conservaron las 9 que pide el enunciado (\texttt{Kingdom}, \texttt{Phylum}, \texttt{Class}, \texttt{Order}, \texttt{Family}, \texttt{Species}, \texttt{Source}, \texttt{Source 2} y \texttt{Notes}). La Tabla~\ref{tab:calidad_csv} resume sus problemas y la decisi\'on tomada con cada uno. Ning\'un valor se corrigi\'o a mano: los rellenos y comentarios pasan a \texttt{null}, y las inconsistencias taxon\'omicas reales se cargan tal cual y se documentan.
+
+\begin{table}[!t]
+\caption{Problemas encontrados en el CSV de metadatos y su decisi\'on.\label{tab:calidad_csv}}
+\footnotesize
+\begin{tabular}{@{}p{0.36\columnwidth}p{0.16\columnwidth}p{0.40\columnwidth}@{}}
+\toprule
+Problema & Filas & Decisi\'on \\
+\midrule
+Espacios al inicio o al final en la taxonom\'ia & 13 & Se eliminan \\
+Valores faltantes (\texttt{Phylum} 3, \texttt{Class} 49, \texttt{Order} 29, \texttt{Family} 76) & 122 & Se guardan como \texttt{null} \\
+Rellenos de texto en \texttt{Order} (11 variantes, como \textit{No trobat}) & 26 & Pasan a \texttt{null} \\
+Comentarios en \texttt{Source 2} en lugar de fuentes & 4 & Pasan a \texttt{null} \\
+\texttt{Species} que es un grupo taxon\'omico (como \textit{Afrotheria}) & 45 & Se cargan con \texttt{is\_species: false}, porque tienen TEs \\
+Nombres no binomiales (subespecies, cepas, h\'ibridos) & 52 & Se aceptan tal cual \\
+Taxonom\'ia contradictoria dentro de un g\'enero (como \textit{Beta vulgaris} en dos familias) & 18 (10 g\'eneros) & Se cargan tal cual y se documentan \\
+Especies duplicadas tras normalizar & 0 & \'Indice \'unico en \texttt{species} \\
+\botrule
+\end{tabular}
+\end{table}
+
+El cruce se hace por especie, comparando los nombres normalizados con \texttt{normalize\_species} (sin espacios sobrantes y en min\'usculas). La primera versi\'on dej\'o 4 especies sin pareja (533 TEs), porque el FASTA escribe \textit{subsp.} y \textit{sp.} con punto y el CSV sin \'el. Al eliminar tambi\'en los puntos, las 2.790 especies cruzan en ambos sentidos y ning\'un TE queda sin \texttt{species\_id}. Adem\'as, la columna \texttt{TE\_count} del CSV, usada solo para validar, coincide con el n\'umero de TEs del FASTA en todas las especies.
+
+% -----------------------------------------------------------------------------
+% 3.2 MODELO DE DATOS
+% RESPONSABLE: Thomas | CONTENIDO: diagrama del modelo (figura) y descripcion breve de
+% colecciones y relaciones | PALABRAS: 150 + figura
+% Archivo de la figura: figuras/modelo_panteon.pdf (exportado de draw.io). Subirlo a Overleaf
+% con ese nombre y la figura aparece sola.
+% -----------------------------------------------------------------------------
+\subsection{Modelo de datos}
+
+La Figura~\ref{fig:modelo} muestra el modelo de datos. La base tiene cuatro colecciones: \texttt{especies}, \texttt{tes}, \texttt{secuencias} y \texttt{kmers}. En \texttt{especies} hay un documento por especie (2.790), con su taxonom\'ia completa agrupada en el subdocumento \texttt{taxonomy}. En \texttt{tes} hay un documento por elemento transponible (239.946), con su clasificaci\'on en el subdocumento \texttt{classification}, sus atributos calculados y una referencia a su especie (\texttt{species\_id}). Adem\'as, \texttt{tes} copia algunos campos de la especie (en naranja en la figura) para no tener que hacer \texttt{\$lookup} en las consultas m\'as comunes. La secuencia de cada TE se guarda aparte, en \texttt{secuencias}, con el mismo \texttt{\_id} que su TE (relaci\'on 1:1), y los k-mers se guardan en \texttt{kmers}, con seis documentos por TE, uno por cada valor de k (relaci\'on 1:6). Todas las relaciones usan el \texttt{\_id} generado por MongoDB (ObjectId), y el identificador original de cada secuencia se guarda en el campo \texttt{pdb\_id}.
+
+\begin{figure*}[!t]
+\centering
+\figuraopcional{figuras/modelo_panteon.pdf}{0.95\textwidth}{subir el diagrama del modelo}
+\caption{Modelo de datos en MongoDB: colecciones, campos y relaciones.\label{fig:modelo}}
+\textoalternativo{diagrama con cuatro tablas (especies, tes, secuencias y kmers) con sus campos y tipos, unidas por l\'ineas que indican relaciones 1:N, 1:1 y 1:6. Los campos copiados est\'an en naranja y los subdocumentos en azul.}
+\end{figure*}
+
+% -----------------------------------------------------------------------------
+% 3.3 DECISIONES DE DISENO
+% RESPONSABLE: Thomas (tabla, ya escrita) + Juan Sebastian (indices, $jsonSchema,
+% integridad referencial) | CONTENIDO: cada decision con alternativas descartadas y
+% justificacion | PALABRAS: 300 + tabla
+% -----------------------------------------------------------------------------
+\subsection{Decisiones de dise\~no}
+
+La Tabla~\ref{tab:decisiones} resume las decisiones de dise\~no, con las alternativas descartadas y su motivo.
+
+\begin{table*}[!t]
+\caption{Decisiones de dise\~no del modelo.\label{tab:decisiones}}
+\footnotesize
+\begin{tabular}{@{}p{0.13\textwidth}p{0.19\textwidth}p{0.17\textwidth}p{0.45\textwidth}@{}}
+\toprule
+Decisi\'on & Elecci\'on & Alternativas descartadas & Motivo \\
+\midrule
+1. Relaci\'on entre TE-especie & H\'ibrida: \texttt{species\_id} + copia de \texttt{species\_name}, \texttt{kingdom}, \texttt{phylum} y \texttt{source} & Solo la referencia y la especie embebida completa. & Copiar solo algunos campos de la especie dentro del TE permite hacer las consultas por especie y por reino de forma m\'as directa, entonces solo se copia lo que se necesita en la mayor\'ia de los casos. Como los datos no cambian, la copia no genera problemas de actualizaci\'on. Embeber todo repetir\'ia la taxonom\'ia en 239.946 documentos y solo referenciar obliga a hacer \texttt{\$lookup} en casi todas las agregaciones. \\
+\noalign{\vspace{3pt}}
+2. Jerarqu\'ias & Subdocumentos: \texttt{taxonomy} en \texttt{especies} y \texttt{classification} en \texttt{tes}. & Campos planos; arreglo de ancestros; colecci\'on de clasificaciones & Con subdocumentos cada jerarqu\'ia queda agrupada y se evita confundir la clase y el orden de la especie con la clase y el orden del TE. \\
+\noalign{\vspace{3pt}}
+3. Secuencia & Colecci\'on aparte llamada \texttt{secuencias}, con el mismo \texttt{\_id} que su TE & Dentro de \texttt{tes} & Se separ\'o porque la secuencia es la parte m\'as pesada de un TE (en promedio, 4.017 nucle\'otidos) y solo se usa para calcular los k-mers y generar las bibliotecas. Si estuviera dentro del documento del TE, todas las dem\'as consultas tendr\'ian que leerla aunque no la necesiten, y ser\'ian m\'as lentas. \\
+\noalign{\vspace{3pt}}
+4. Ubicaci\'on de los k-mers & Colecci\'on \texttt{kmers}: un documento por TE y por k, con copia de \texttt{pdb\_id} y \texttt{te\_order} & Embebidos en el TE; un documento por TE con los 6 k; una colecci\'on por k & La consulta 15 y el heatmap usan un solo k a la vez, as\'i cada una lee solo el k que necesita. El benchmark confirm\'o la elecci\'on: frente a guardar los k-mers dentro del TE, la carga, el espacio y las b\'usquedas por secuencia con \'indice fueron pr\'acticamente iguales, pero las consultas que no usan k-mers fueron entre 2,5 y 4,5 veces m\'as r\'apidas con la colecci\'on aparte. \\
+\noalign{\vspace{3pt}}
+5. Formato de los k-mers & Conteos en diccionario disperso + \texttt{valid\_windows} & Arreglo denso, arreglo de pares y frecuencias & Se guardan los conteos enteros exactos junto con el total de ventanas, de modo que la frecuencia se puede calcular cuando se necesite; guardar frecuencias har\'ia perder precisi\'on. El diccionario solo incluye los k-mers presentes, as\'i no guarda ceros (que abundan en k = 5 y 6), y es autodescriptivo: cada valor indica a qu\'e k-mer corresponde. \\
+\botrule
+\end{tabular}
+\end{table*}
+
+\paragraph{Modelos completos considerados.} Antes de fijar las decisiones, el equipo compar\'o tres modelos completos. El \emph{normalizado} (taxonom\'ia solo en \texttt{especies}, TEs con referencia y k-mers aparte) es el m\'as limpio, pero depende de \texttt{\$lookup} en todas las consultas por reino o phylum, que recorren unos 240.000 documentos. El \emph{embebido} (taxonom\'ia, secuencia y k-mers dentro de cada TE) es el m\'as simple de consultar, pero cada TE pesa decenas de KB m\'as y todas las consultas cargan con ese peso aunque no usen k-mers. Se eligi\'o el \emph{h\'ibrido} de la Tabla~\ref{tab:decisiones}, que equilibra velocidad de consulta y documentos livianos. Como los datos son una versi\'on fija de PanTEon que no se actualiza, duplicar unos pocos campos no genera problemas de sincronizaci\'on. Para el formato de los k-mers tambi\'en se descartaron el arreglo de pares \texttt{\{kmer, count\}}, el m\'as pesado y lento de cargar, y un binario comprimido, el m\'as compacto pero imposible de consultar desde MongoDB, lo que incumplir\'ia el requisito de que los perfiles se puedan consultar. La estrategia embebida se conserv\'o como alternativa para el benchmark.
+
+Las decisiones se implementan con los siguientes \'indices, reglas de validaci\'on y controles de integridad.
+
+% --- Parte de Juan Sebastian (indices, $jsonSchema, integridad referencial) ---
+% Insumos: resultados/insumos_articulo_juan.md, seccion 5; MODELO.md.
+\paragraph{\'Indices.} Se crean despu\'es de la carga, porque as\'i la inserci\'on es m\'as r\'apida, y cada uno existe para una consulta concreta:
+\begin{itemize}
+\item \texttt{tes}: \texttt{\{pdb\_id\}} \'unico, para buscar una secuencia por su nombre (consulta~8) e impedir nombres repetidos; \texttt{\{species\_id\}}, para el \texttt{\$lookup} y los TEs de una especie; \texttt{\{species\_name, classification.te\_superfamily\}}, para la consulta~9 y la biblioteca por especie; y \texttt{\{kingdom\}}, para la biblioteca por reino.
+\item \texttt{kmers}: \texttt{\{te\_id, k\}} \'unico, para traer el perfil de un TE sin duplicados; \texttt{\{pdb\_id, k\}}, para la consulta~15; y \texttt{\{k, te\_order\}}, para el heatmap.
+\item \texttt{especies}: \texttt{\{species\}} \'unico, para buscar por nombre e impedir especies repetidas.
+\end{itemize}
+
+\paragraph{Validaci\'on e integridad.} \texttt{especies}, \texttt{tes} y \texttt{kmers} tienen validaci\'on \texttt{\$jsonSchema} estricta (\texttt{validationLevel: strict}, \texttt{validationAction: error}), es decir, MongoDB rechaza cualquier documento que no cumpla las reglas. La validaci\'on exige los campos obligatorios, restringe \texttt{kingdom} a los tres reinos, $k$ a valores de 1 a 6 y \texttt{gc\_content} y \texttt{n\_percent} al intervalo $[0, 1]$. \texttt{secuencias} no tiene validador, porque guarda la secuencia tal como viene. Como MongoDB no garantiza la integridad referencial, el pipeline la protege con el orden de carga (\texttt{especies}, luego \texttt{tes} y \texttt{secuencias}, luego \texttt{kmers}), con verificaciones al final de cada etapa (todo \texttt{species\_id} existe, \texttt{tes} y \texttt{secuencias} comparten los \texttt{\_id} y cada TE tiene 6 perfiles) y con una guarda que impide recargar \texttt{tes} sin recalcular los k-mers, porque eso cambiar\'ia los \texttt{\_id}.
+
+% -----------------------------------------------------------------------------
+% 3.4 PIPELINE EN PYTHON
+% RESPONSABLE: Juan Sebastian | CONTENIDO: lectura y validacion, limpieza, cruce,
+% calculo de k-mers, atributos calculados, carga masiva, reproducibilidad | PALABRAS: 400
+% Insumos: resultados/insumos_articulo_juan.md, seccion 3; notebooks 01, 02 y 03.
+% Citas disponibles: cock2009biopython, mongodb7, pymongo
+% -----------------------------------------------------------------------------
+\subsection{Pipeline en Python}
+
+El pipeline est\'a escrito en Python 3.11 con pandas \citep{mckinney2010pandas}, Biopython \citep{cock2009biopython}, numpy \citep{harris2020numpy} y pymongo \citep{pymongo}. Se organiza en tres notebooks que se ejecutan en orden, con las funciones reutilizables en \texttt{src/} y pruebas automatizadas:
+\begin{enumerate}
+\item \texttt{01\_pipeline\_csv\_especies}: limpia el CSV, carga \texttt{especies} con \texttt{bulk\_write} de \texttt{ReplaceOne} con \texttt{upsert}, que reemplaza la especie si ya existe (as\'i el notebook se puede volver a ejecutar sin cambiar los \texttt{\_id}), crea el validador y el \'indice y genera el reporte del cruce.
+\item \texttt{02\_pipeline\_fasta\_tes}: lee el FASTA con Biopython, separa el encabezado por \texttt{\#} y \texttt{@} sin suponer el prefijo PDB y valida caracteres, N y longitudes. Calcula tres atributos por TE: longitud, contenido GC ($G + C$ sobre $A + C + G + T$, sin contar N ni c\'odigos IUPAC) y porcentaje de N. Une cada TE con su especie y carga \texttt{tes} y \texttt{secuencias} por lotes de 2.000 con \texttt{insert\_many(ordered=False)}; los 479.892 documentos se cargaron en 6,6~s.
+\item \texttt{03\_pipeline\_kmers}: calcula los perfiles de $k = 1$ a 6 y los carga en las dos estrategias del benchmark. La secuencia se pasa a may\'usculas y cada letra se convierte en un n\'umero (A~=~0, C~=~1, G~=~2, T~=~3). As\'i, cada ventana de $k$ letras se convierte en un solo n\'umero en base~4, y numpy cuenta todas las ventanas de una vez con \texttt{np.bincount}, en lugar de recorrerlas una por una en Python. Toda ventana que contenga una N u otro car\'acter distinto de A, C, G y T se descarta, y \texttt{valid\_windows} registra cu\'antas ventanas se contaron.
+\end{enumerate}
+El c\'alculo de k-mers se valid\'o contra una implementaci\'on en Python puro en 50 secuencias con N, c\'odigos IUPAC y min\'usculas. Con numpy, un solo proceso calcula unas 2.750 secuencias por segundo, y con 10 procesos (\texttt{multiprocessing}) unas 7.380 por segundo, medido en una muestra de 2.000 secuencias (\texttt{resultados/rendimiento\_kmers.csv}). Eso equivale a unos 1,5~min para contar los k-mers de toda la base en un proceso; en la carga completa, el c\'alculo, que incluye tambi\'en armar los documentos, tard\'o unos 125~s (Tabla~\ref{tab:carga}). La reproducibilidad se apoya en el \texttt{README} (entorno con \texttt{environment.yml}), las pruebas (\texttt{pytest}) y los respaldos con \texttt{mongodump}.
+
+% -----------------------------------------------------------------------------
+% 3.5 DISENO DE LOS EXPERIMENTOS
+% RESPONSABLE: Juan Sebastian (carga y espacio) + Thomas (consultas, ya escrito)
+% CONTENIDO: estrategias comparadas, metricas, equipo de pruebas | PALABRAS: 350
+% -----------------------------------------------------------------------------
+\subsection{Dise\~no de los experimentos}
+
+Para evaluar la decisi\'on de almacenar los perfiles de k-mers en una colecci\'on aparte, se compar\'o esta estrategia con una alternativa en la que los perfiles se embeben en el documento de cada TE. Ambas contienen exactamente los mismos datos y solo difieren en su organizaci\'on: en la estrategia principal, la colecci\'on \texttt{kmers} guarda un documento por TE y por valor de k (1.439.676 documentos) y se relaciona con \texttt{tes} mediante \texttt{te\_id}; en la alternativa, la colecci\'on \texttt{tes\_embebidos} guarda un documento por TE (239.946 documentos) con los campos de \texttt{tes} y un subdocumento con los seis perfiles. A continuaci\'on se describe c\'omo se midieron la carga, el espacio y el tiempo de consulta.
+
+% --- Parte de Juan Sebastian (carga y espacio) ---
+% Insumos: resultados/insumos_articulo_juan.md, seccion 4 (maquina, repeticiones, validacion).
+Para la carga y el espacio, cada estrategia se carg\'o completa tres veces desde cero, borrando y recreando las colecciones, con validaci\'on \texttt{\$jsonSchema} en ambas para que la inserci\'on fuera comparable. En cada carga se midieron por separado, con \texttt{time.perf\_counter()}, el tiempo de c\'alculo de los k-mers, el de inserci\'on y el de creaci\'on de \'indices. El espacio se midi\'o con \texttt{collStats} sobre las colecciones de la \'ultima repetici\'on: tama\~no sin comprimir (\texttt{size}), tama\~no en disco con la compresi\'on de WiredTiger (\texttt{storageSize}) y tama\~no de los \'indices (\texttt{totalIndexSize}). Las mediciones se hicieron con el equipo conectado a la corriente, las dem\'as aplicaciones cerradas y la suspensi\'on desactivada.
+
+Todos los experimentos de carga, espacio y consultas se ejecutaron en el mismo equipo, descrito en la Tabla~\ref{tab:maquina}. Los tiempos dependen de este hardware: en un equipo con otro procesador, menos memoria o un disco m\'as lento, los valores absolutos cambiar\'ian, aunque se espera que la comparaci\'on entre estrategias se mantenga.
+
+\begin{table}[!t]
+\caption{Equipo en el que se ejecutaron todos los experimentos (\texttt{resultados/especificaciones\_maquina\_juan.md}).\label{tab:maquina}}
+\footnotesize
+\begin{tabular*}{\columnwidth}{@{\extracolsep{\fill}}ll@{}}
+\toprule
+Componente & Especificaci\'on \\
+\midrule
+Procesador & Apple M5, 10 n\'ucleos (4 de rendimiento y 6 de eficiencia) \\
+Memoria RAM & 24~GB \\
+Disco & SSD interno (APFS), 460,4~GB \\
+Sistema operativo & macOS 27.0.1 \\
+Base de datos & MongoDB 7.0.45, WiredTiger, cach\'e de 11,5~GB \\
+Software & Python 3.11.17, pymongo 4.19.0, numpy 2.4.6, pandas 3.1.0 \\
+\botrule
+\end{tabular*}
+\end{table}
+
+% --- Parte de Thomas (consultas), texto revisado: no cambiar la redaccion ---
+Se eligieron cuatro consultas representativas de los usos del proyecto:
+\begin{itemize}
+\item Q1, perfil de una secuencia para un k: recupera los conteos de 2-mers de una secuencia. Corresponde a la consulta obligatoria 15.
+\item Q2, heatmap de 2-mers por orden: calcula, mediante una agregaci\'on en MongoDB, la frecuencia promedio de cada uno de los 16 dinucle\'otidos para cada orden de TE. Corresponde a la figura del heatmap.
+\item Q3, perfil completo de una secuencia: recupera los seis perfiles (k = 1 a 6) de una secuencia. Representa el uso que favorece a la estrategia embebida, como la preparaci\'on de datos para un clasificador.
+\item Q4, conteo de TEs por reino y orden: agrupa y cuenta los TEs sin usar los k-mers. Representa la mayor\'ia de las consultas obligatorias, que trabajan con los datos del TE.
+\end{itemize}
+
+Q1 y Q3 son b\'usquedas puntuales, por lo que cada medici\'on repite la b\'usqueda para 50 identificadores elegidos al azar con semilla fija (42) entre los 239.946 de la colecci\'on \texttt{tes}; la misma muestra se usa en ambas estrategias. Q2 y Q4 recorren toda la base y se ejecutan una vez por medici\'on. Cada consulta se ejecut\'o en dos variantes: con \'indice, dejando que MongoDB eligiera el plan, y sin \'indice, forzando a MongoDB a recorrer toda la colecci\'on con \texttt{hint(\{"\$natural": 1\})}, sin borrar los \'indices.
+
+Para cada combinaci\'on de consulta, estrategia y variante se realiz\'o una ejecuci\'on de calentamiento no registrada, para que los datos ya estuvieran en memoria, y luego tres repeticiones, alternando en cada una el orden de las estrategias. El tiempo se midi\'o con \texttt{time.perf\_counter()}, consumiendo todos los resultados. Adem\'as, se obtuvo una vez por combinaci\'on el plan de ejecuci\'on con \texttt{explain("executionStats")}: etapa de acceso (IXSCAN o COLLSCAN), documentos y claves examinados y tiempo de la etapa de lectura. Antes de medir, se verific\'o que cada consulta devolviera exactamente el mismo resultado en ambas estrategias, y que las colecciones tuvieran los documentos e \'indices esperados.
+
+El procedimiento completo est\'a en \texttt{notebooks/06\_benchmark\_consultas.ipynb}.
+
+% =============================================================================
+% 4. RESULTADOS
+% =============================================================================
+\section{Resultados}
+
+% El docente autorizo superar el limite de paginas de la revista: todas las tablas y figuras van
+% en el texto principal. El codigo de cada consulta esta en los notebooks del repositorio.
+
+% -----------------------------------------------------------------------------
+% 4.1 CONSULTAS
+% RESPONSABLE: Juan Esteban (1-9, 12-15 y propias) + Isabela (10 y 11)
+% CONTENIDO: pregunta, resultado e interpretacion de cada consulta | PALABRAS: 700
+% Fuente: notebooks/04_consultas.ipynb y notebooks/05_bibliotecas_y_figuras.ipynb
+% -----------------------------------------------------------------------------
+\subsection{Consultas}
+
+% --- Parte de Juan Esteban (1-9, 12-15 y propias) ---
+Las consultas 1--9, 12--15 y las dos preguntas propias se resuelven en \texttt{04\_consultas.ipynb} con \texttt{find} y \texttt{aggregate}. La Tabla~\ref{tab:consultas} resume el resultado principal de cada una.
+
+\paragraph{Composici\'on.} La base tiene 239.946 TEs en 2 clases, 11 \'ordenes y 65 superfamilias (66 nombres, porque la de ARNt aparece escrita como \texttt{TRNA} y como \texttt{tRNA}; consulta~14). La clase~I re\'une el 81,2\,\% de los TEs, y tres \'ordenes concentran el 93,4\,\%: LTR (49,8\,\%), LINE (28,5\,\%) y TIR (15,2\,\%). Las superfamilias m\'as abundantes son Copia (21,2\,\%) y Gypsy (18,3\,\%). Cada registro es una entrada de biblioteca, normalmente el consenso de una familia (una secuencia que la representa), as\'i que los conteos miden familias anotadas y no la fracci\'on del genoma que ocupan. Por reino, las plantas est\'an dominadas por LTR (72,3\,\%) y los animales por LINE (44,0\,\%) (consulta~3). El tama\~no de las bibliotecas var\'ia mucho: \textit{Malus domestica} tiene 1.627 TEs, mientras que 326 especies (12\,\%) tienen uno solo (consulta~4), lo que limita las comparaciones entre especies.
+
+\paragraph{Longitud y GC.} Los TEs de clase~I miden en promedio m\'as del doble que los de clase~II (4.453 frente a 2.137~nt; consulta~5). En TIR y ERV el promedio supera ampliamente a la mediana, se\~nal de distribuciones con cola larga. Varios \'ordenes tienen l\'imites exactos (LINE entre 500 y 6.000~nt; SINE y MITE hasta 500~nt), y ning\'un TE mide menos de 100~nt salvo algunos SINE (m\'inimo 81~nt; consulta~5). En plantas y hongos hay TEs de exactamente 100~nt incluso en LTR y Helitron (consulta~7), lo que sugiere umbrales del pipeline de origen. El GC promedio es mayor en hongos (46,5\,\%) que en animales (44,6\,\%) y plantas (41,4\,\%), y entre los \'ordenes destacan SINE (53,1\,\%) y DIRS (52,9\,\%) (consulta~6). El TE m\'as largo de la base es un Gypsy de 19.926~nt de \textit{Helianthus annuus}.
+
+\paragraph{B\'usquedas.} Las consultas 8, 9 y 15 usan \'indices que examinan exactamente los documentos devueltos: el \'indice \'unico \texttt{\{pdb\_id\}} (1 clave), el compuesto \texttt{\{species\_name, classification.te\_superfamily\}} (2 claves para los 2 Helitron de \textit{H. mephisto}) y \texttt{\{pdb\_id, k\}} (1 documento). La consulta~9 muestra por qu\'e hace falta normalizar los nombres: con el nombre del CSV, \textit{Beta vulgaris subsp vulgaris}, sus 84 TEs de L1 solo aparecen despu\'es de aplicar \texttt{normalize\_species}.
+
+\paragraph{Relaciones y calidad.} En la consulta~12, unir los 239.946 TEs con su especie mediante \texttt{\$lookup} tard\'o 45,6~s, frente a 1,1~s al agrupar primero por especie (2.790 b\'usquedas en lugar de 239.946): conviene reducir antes de unir. Por origen (consulta~13), Dfam aporta 386 especies y 31.592 TEs, y RM2+MCH 2.404 especies y 208.354 TEs. El promedio de TEs por especie es parecido (81,8 y 86,7), pero los TEs de RM2+MCH son mucho m\'as largos (4.376 frente a 1.654~nt), en parte porque Dfam tiene m\'as TIR y SINE. Como 385 de las 386 especies de Dfam son animales, esta comparaci\'on queda mezclada con la del reino. El control de calidad (consulta~14) encontr\'o 10.319 TEs (4,3\,\%) clasificados solo hasta orden, sobre todo en TIR (16,4\,\% del orden) y SINE (21,2\,\%); la superfamilia de ARNt escrita como \texttt{TRNA} y como \texttt{tRNA}; 4 TEs \texttt{SINE/ERV1}, y 6 TEs ERV en hongos (consulta~7). Tambi\'en confirm\'o que no hay TEs sin especie y que cada TE tiene sus 6 perfiles de k-mers.
+
+\paragraph{Preguntas propias.} La propia~1 mide la diversidad de superfamilias por especie. Est\'a fuertemente correlacionada con el n\'umero de TEs ($\rho$ de Spearman $= 0{,}92$; $n = 2.790$): las especies con m\'as TEs casi siempre muestran m\'as superfamilias, as\'i que las diferencias entre grupos reflejan sobre todo el tama\~no de las bibliotecas. La propia~2 calcula la raz\'on CpG observado/esperado con los perfiles de $k = 1$ y $k = 2$, que compara cu\'antos \texttt{CG} tiene cada TE con los que tendr\'ia por azar seg\'un su cantidad de C y de G: un valor de 1 es lo esperado y uno menor indica que faltan \texttt{CG}. Los TEs de plantas (0,62) y animales (0,66) est\'an empobrecidos en CpG, mucho m\'as que los de hongos (0,86). Esto concuerda con la desaminaci\'on de las citosinas metiladas, que con el tiempo convierte los CG en TG o CA \citep{bird1980dna}, y con que la metilaci\'on del ADN es escasa o ausente en varios hongos \citep{zemach2010genome}. Fue la consulta m\'as costosa (211~s), porque necesita un \texttt{\$lookup} a \texttt{tes} para conocer el reino de cada TE.
+
+% --- Parte de Isabela (10 y 11: bibliotecas) ---
+\paragraph{Bibliotecas (consultas 10 y 11).} Las consultas 10 y 11 generan bibliotecas \texttt{.fasta} a partir de la base, sin leer el FASTA original. Una misma funci\'on recibe el filtro como par\'ametro (\texttt{species\_name} para la especie y \texttt{kingdom} para el reino), consulta \texttt{tes} trayendo solo los campos del encabezado y recupera las secuencias de \texttt{secuencias} por lotes de 5.000 \texttt{\_id} con \texttt{\$in}. Cada registro se escribe con el encabezado original, \texttt{>ID\#CLASE/ORDEN/SUPERFAMILIA @Especie}, y la secuencia sin modificar. Si un archivo supera 100~MB, se comprime con gzip. La funci\'on comprueba que el n\'umero de secuencias escritas coincida con \texttt{count\_documents} sobre el mismo filtro.
+
+Para la especie se us\'o \textit{Halicephalobus mephisto}: su biblioteca tiene 10 secuencias (7 TIR, 2 HELITRON y 1 LINE) y ocupa 17~KB. Para el reino se us\'o Fungi: 19.797 secuencias y 69,8~MB, por debajo del l\'imite, as\'i que no fue necesario comprimirla. Las bibliotecas de Animalia (101.144 TEs) y Plantae (119.005) se generan con la misma funci\'on cambiando el par\'ametro.
+
+\begin{table*}[!t]
+\caption{Resumen de las consultas obligatorias y su resultado principal.\label{tab:consultas}}
+\footnotesize
+\begin{tabular}{@{}p{0.04\textwidth}p{0.50\textwidth}p{0.40\textwidth}@{}}
+\toprule
+N.\textsuperscript{o} & Pregunta & Resultado clave \\
+\midrule
+1 & TEs por clase, orden y superfamilia & Clase~I 81,2\,\%; LTR 49,8\,\%, LINE 28,5\,\%, TIR 15,2\,\% \\
+2 & TEs por especie, por clase, orden y superfamilia & 18.513 combinaciones especie--superfamilia (6,6 por especie) \\
+3 & TEs por clase y orden entre reinos y entre phyla & Plantas: LTR 72,3\,\%; animales: LINE 44,0\,\% \\
+4 & 10 especies con m\'as y con menos TEs & M\'aximo: \textit{M. domestica} (1.627); 326 especies con 1 TE \\
+5 & Longitud promedio, m\'inima y m\'axima por clase, orden y superfamilia & Clase~I 4.453~nt, clase~II 2.137~nt \\
+6 & GC promedio por orden y por reino & Hongos 46,5\,\%, animales 44,6\,\%, plantas 41,4\,\% \\
+7 & TEs m\'as largos y m\'as cortos de cada reino & Gypsy de 19.926~nt (\textit{H. annuus}); SINE de 81~nt \\
+8 & B\'usqueda de una secuencia por su nombre & \texttt{PDB00000001} con su taxonom\'ia; IXSCAN, 1 clave \\
+9 & Secuencias de una superfamilia en una especie & \textit{H. mephisto}: 2 HELITRON; 2 claves examinadas \\
+10 & Biblioteca \texttt{.fasta} de una especie & \textit{H. mephisto}: 10 secuencias, 17~KB \\
+11 & Biblioteca \texttt{.fasta} de un reino & Fungi: 19.797 secuencias, 69,8~MB (sin comprimir) \\
+12 & \texttt{\$lookup} de secuencias con la taxonom\'ia de su especie & 45,6~s directa frente a 1,1~s agrupando antes \\
+13 & Comparaci\'on por origen (Dfam frente a RM2+MCH) & Dfam 386 especies, 1.654~nt; RM2+MCH 2.404, 4.376~nt \\
+14 & Control de calidad & 10.319 TEs (4,3\,\%) solo hasta orden; 0 TEs sin especie \\
+15 & Perfil de k-mers de una secuencia para un k & \texttt{PDB00000001}, $k = 2$: 1.990 ventanas; 1 documento \\
+P1 & Superfamilias por especie seg\'un reino, fuente y n\'umero de TEs & $\rho = 0{,}92$ con el n\'umero de TEs \\
+P2 & Empobrecimiento de CpG por orden y reino & CpG o/e: plantas 0,62; animales 0,66; hongos 0,86 \\
+\botrule
+\end{tabular}
+\end{table*}
+
+% -----------------------------------------------------------------------------
+% 4.2 VISUALIZACION DE LOS DATOS
+% RESPONSABLE: Isabela | CONTENIDO: las 4 figuras obligatorias con su interpretacion
+% | PALABRAS: 400 + figuras
+% Fuente: notebooks/05_bibliotecas_y_figuras.ipynb. Las figuras se guardan en figuras/
+% con estos nombres; al subirlas a Overleaf aparecen solas.
+% -----------------------------------------------------------------------------
+\subsection{Visualizaci\'on de los datos}
+
+Las cuatro figuras se generan en \texttt{05\_bibliotecas\_y\_figuras.ipynb} a partir de consultas a la base, con matplotlib \citep{hunter2007matplotlib} y seaborn \citep{waskom2021seaborn}.
+
+La composici\'on por orden cambia entre reinos (Figura~\ref{fig:composicion}). Se usa el porcentaje dentro de cada reino porque Fungi tiene seis veces menos TEs que Plantae. En Plantae dominan los LTR (72,3\,\%). En Animalia el orden m\'as frecuente es LINE (44,0\,\%), seguido de LTR (25,1\,\%) y TIR (21,4\,\%). Fungi queda en un punto intermedio, con LTR (40,1\,\%) y LINE (31,0\,\%), y es el reino con m\'as HELITRON (8,6\,\%) y DIRS (3,8\,\%). SINE y MITE solo superan el 1\,\% en Animalia, y PLE, RETROPOSON, CRYPTON y MAVERICK no llegan al 0,5\,\% en ning\'un reino.
+
+La longitud separa dos grupos de \'ordenes (Figura~\ref{fig:longitud}). SINE, CRYPTON y MITE son cortos, con medianas entre 254 y 345~nt. LTR, DIRS y MAVERICK son los m\'as largos, con medianas por encima de 5.000~nt, y en LTR est\'a el TE m\'as largo de la base (19.926~nt). HELITRON y TIR tienen la mayor dispersi\'on, con valores desde 100~nt hasta 14.819 y 9.991~nt. SINE y MITE nunca pasan de 500~nt y LINE nunca baja de esa cifra; estos cortes parecen venir de los criterios de la biblioteca de origen, lo que queda por verificar en la documentaci\'on de PanTEon.
+
+El contenido GC es mayor en Fungi (mediana 47,1\,\%) que en Animalia (44,1\,\%) y Plantae (41,0\,\%), aunque las distribuciones se solapan mucho (Figura~\ref{fig:gc}). Plantae tiene adem\'as la menor dispersi\'on (desviaci\'on est\'andar de 6,5 puntos, frente a 8,1 y 9,0).
+
+En los 2-mers (Figura~\ref{fig:heatmap}), CG es el menos frecuente en seis de los 11 \'ordenes (LINE, LTR, TIR, MITE, HELITRON y RETROPOSON) y alcanza su m\'inimo en LINE y LTR (0,030), lo que concuerda con el d\'eficit de CpG que deja la metilaci\'on del ADN \citep{bird1980dna}. LINE y LTR tienen perfiles casi iguales. TIR, MITE, HELITRON y MAVERICK forman otro grupo, rico en AA y TT (frecuencias de 0,096 a 0,106). SINE, RETROPOSON y DIRS son los m\'as distintos: m\'as CC y GG y menos AT, TA o TT. Los promedios de CRYPTON, MAVERICK y RETROPOSON se basan en menos de 120 TEs cada uno y deben leerse con cautela.
+
+\begin{figure*}[!t]
+\centering
+\figuraopcional{figuras/fig1_composicion_reino.png}{\textwidth}{figura 1: \'ordenes de TE por reino}
+\caption{Composici\'on de TEs por reino: porcentaje de TEs de cada orden dentro de Animalia (101.144 TEs), Plantae (119.005) y Fungi (19.797).\label{fig:composicion}}
+\textoalternativo{Gr\'afico de barras agrupadas con los 11 \'ordenes de TE en el eje horizontal y el porcentaje de TEs del reino en el vertical, con una barra por reino. La barra m\'as alta es LTR en Plantae, con un 72\,\%. En Animalia la barra m\'as alta es LINE, con un 44\,\%. Desde SINE hacia la derecha, todas las barras est\'an por debajo del 4\,\%.}
+\end{figure*}
+
+\begin{figure*}[!t]
+\centering
+\figuraopcional{figuras/fig2_longitud_orden.png}{\textwidth}{figura 2: boxplot de longitud por orden}
+\caption{Distribuci\'on de la longitud de los TEs por orden, en escala logar\'itmica. Los \'ordenes est\'an ordenados por su mediana.\label{fig:longitud}}
+\textoalternativo{Diagrama de cajas con un orden de TE por caja y la longitud en nucle\'otidos en escala logar\'itmica. SINE, CRYPTON y MITE, a la izquierda, tienen cajas por debajo de 500 nucle\'otidos. Las medianas suben hacia la derecha hasta LTR y MAVERICK, por encima de 5.000. LTR tiene muchos valores at\'ipicos en ambos extremos.}
+\end{figure*}
+
+\begin{figure}[!t]
+\centering
+\figuraopcional{figuras/fig3_gc_reino.png}{\columnwidth}{figura 3: contenido GC por reino}
+\caption{Contenido GC de los TEs por reino, en porcentaje.\label{fig:gc}}
+\textoalternativo{Diagrama de cajas con tres cajas, una por reino, y el contenido GC en porcentaje en el eje vertical. Las medianas son de alrededor del 44\,\% en Animalia, del 41\,\% en Plantae y del 47\,\% en Fungi. Las tres cajas se solapan, y la de Plantae es la m\'as estrecha.}
+\end{figure}
+
+\begin{figure*}[!t]
+\centering
+\figuraopcional{figuras/fig4_heatmap_2mers.png}{\textwidth}{figura 4: heatmap de 2-mers por orden}
+\caption{Frecuencia promedio de los 16 2-mers por orden de TE. Las filas se agrupan por similitud del perfil (dendrograma a la izquierda).\label{fig:heatmap}}
+\textoalternativo{Mapa de calor con los 11 \'ordenes de TE en las filas y los 16 2-mers en las columnas; el color va de morado, para frecuencias bajas, a amarillo, para altas. La columna CG es la m\'as oscura en LINE, LTR, TIR, MITE, HELITRON y RETROPOSON. Las columnas AA y TT son claras en TIR, MITE, HELITRON y MAVERICK. Un dendrograma separa arriba a DIRS, RETROPOSON y SINE del resto.}
+\end{figure*}
+
+% -----------------------------------------------------------------------------
+% 4.3 EVALUACION DEL DISENO
+% RESPONSABLE: Juan Sebastian (carga y espacio) + Thomas (consultas, ya escrito)
+% CONTENIDO: tablas y figuras del benchmark | PALABRAS: 400 + tablas
+% -----------------------------------------------------------------------------
+\subsection{Evaluaci\'on del dise\~no}
+
+% --- Parte de Juan Sebastian (carga y espacio) ---
+\paragraph{Carga y espacio.}
+La Tabla~\ref{tab:carga} y la Figura~\ref{fig:carga_espacio} resumen la carga y el espacio. El c\'alculo de los k-mers domina la carga, con unos 125~s, y es igual en ambas estrategias. La embebida carga un 5,5\,\% m\'as r\'apido, sobre todo porque crea menos \'indices: 8,9 de los 10,9~s de diferencia. En disco, ambas ocupan pr\'acticamente lo mismo; repetir \texttt{te\_id}, \texttt{pdb\_id}, \texttt{te\_order} y $k$ en 1,44 millones de documentos cuesta poco despu\'es de la compresi\'on. La diferencia est\'a en los \'indices, unas 11 veces m\'as grandes en \texttt{kmers} porque indexan seis veces m\'as documentos, aunque siguen siendo menos del 2\,\% del total. Las tres repeticiones fueron estables, con una desviaci\'on de 2~s o menos en el total.
+
+\begin{table}[!t]
+\caption{Carga y espacio por estrategia (media $\pm$ desviaci\'on est\'andar, $n = 3$; espacio en MB de la \'ultima repetici\'on).\label{tab:carga}}
+\footnotesize
+\begin{tabular*}{\columnwidth}{@{\extracolsep{\fill}}lcc@{}}
+\toprule
+Medida & Colecci\'on \texttt{kmers} & Embebida \\
+\midrule
+Documentos & 1.439.676 & 239.946 \\
+C\'alculo (s) & 125,5 $\pm$ 2,1 & 125,8 $\pm$ 0,4 \\
+Inserci\'on (s) & 50,2 $\pm$ 0,2 & 47,9 $\pm$ 0,1 \\
+\'Indices (s) & 22,0 $\pm$ 0,4 & 13,1 $\pm$ 1,5 \\
+Carga total (s) & 197,7 $\pm$ 2,0 & 186,8 $\pm$ 1,8 \\
+Datos en disco (MB) & 3.030,6 & 3.037,1 \\
+\'Indices (MB) & 57,7 & 5,2 \\
+\botrule
+\end{tabular*}
+\end{table}
+
+\begin{figure*}[!t]
+\centering
+\begin{minipage}[t]{0.48\textwidth}\centering
+\figuraopcional{figuras/benchmark_carga_panteon.png}{\linewidth}{figura de carga}
+\end{minipage}\hfill
+\begin{minipage}[t]{0.48\textwidth}\centering
+\figuraopcional{figuras/benchmark_espacio_panteon.png}{\linewidth}{figura de espacio}
+\end{minipage}
+\caption{Carga y espacio de las dos estrategias de k-mers. Izquierda: tiempo de carga separado en c\'alculo, inserci\'on e \'indices (media $\pm$ desviaci\'on est\'andar del total, $n = 3$). Derecha: espacio en disco de los datos comprimidos (\texttt{storageSize}) y de los \'indices (\texttt{totalIndexSize}); la colecci\'on \texttt{tes} se muestra como referencia.\label{fig:carga_espacio}}
+\textoalternativo{Dos gr\'aficos de barras apiladas. En el de carga, la colecci\'on \texttt{kmers} y la estrategia embebida tienen unos 125~s de c\'alculo y unos 50~s de inserci\'on; la parte de \'indices es m\'as alta en \texttt{kmers}, con un total de unos 198~s frente a unos 187~s. En el de espacio, ambas estrategias ocupan unos 3.000~MB de datos; la franja de \'indices solo se ve en \texttt{kmers}, y la barra de \texttt{tes} es casi invisible a esa escala.}
+\end{figure*}
+
+\paragraph{Consultas.}
+
+% --- Parte de Thomas (consultas), texto revisado: no cambiar la redaccion ---
+La Tabla~\ref{tab:bench_tiempos} resume los tiempos de las cuatro consultas, la Tabla~\ref{tab:bench_explain} los planes de ejecuci\'on obtenidos con \texttt{explain} y la Figura~\ref{fig:bench_consultas} compara los tiempos en escala logar\'itmica.
+
+\begin{table*}[!t]
+\caption{Tiempo de consulta por estrategia y variante (media $\pm$ desviaci\'on est\'andar, $n = 3$). Q1 y Q3: milisegundos por b\'usqueda; Q2 y Q4: tiempo total.\label{tab:bench_tiempos}}
+\footnotesize
+\begin{tabular*}{\textwidth}{@{\extracolsep{\fill}}lcccc@{}}
+\toprule
+Consulta & Colecci\'on, con \'indice & Colecci\'on, sin \'indice & Embebida, con \'indice & Embebida, sin \'indice \\
+\midrule
+Q1 (ms por b\'usqueda) & 0,114 $\pm$ 0,004 & 596 $\pm$ 257 & 0,115 $\pm$ 0,003 & 360 $\pm$ 257 \\
+Q2 (s) & 11,7 $\pm$ 7,1 & 12,0 $\pm$ 4,8 & 11,3 $\pm$ 5,5 & 12,4 $\pm$ 4,8 \\
+Q3 (ms por b\'usqueda) & 0,372 $\pm$ 0,161 & 540 $\pm$ 228 & 0,318 $\pm$ 0,072 & 267 $\pm$ 193 \\
+Q4 (ms) & 138 $\pm$ 13 & 128 $\pm$ 1 & 352 $\pm$ 189 & 581 $\pm$ 188 \\
+\botrule
+\end{tabular*}
+\end{table*}
+
+\begin{table}[!t]
+\caption{Plan de ejecuci\'on seg\'un \texttt{explain("executionStats")} (una ejecuci\'on por combinaci\'on). En Q1 y Q3 corresponde a la b\'usqueda de una secuencia; en Q2 y Q4, a la etapa de lectura de la agregaci\'on.\label{tab:bench_explain}}
+\footnotesize
+\begin{tabular*}{\columnwidth}{@{\extracolsep{\fill}}lll@{}}
+\toprule
+Consulta y estrategia & \parbox[t]{2.4cm}{Con \'indice: etapa / documentos / ms} & \parbox[t]{2.6cm}{Sin \'indice: etapa / documentos / ms} \\
+\midrule
+Q1, colecci\'on & IXSCAN / 1 / 0 & COLLSCAN / 1.439.676 / 12.381 \\
+Q1, embebida & IXSCAN / 1 / 0 & COLLSCAN / 239.946 / 12.730 \\
+Q2, colecci\'on & IXSCAN / 239.946 / 4.019 & COLLSCAN / 1.439.676 / 16.031 \\
+Q2, embebida & COLLSCAN / 239.946 / 16.879 & COLLSCAN / 239.946 / 15.276 \\
+Q3, colecci\'on & IXSCAN / 6 / 0 & COLLSCAN / 1.439.676 / 9.819 \\
+Q3, embebida & IXSCAN / 1 / 0 & COLLSCAN / 174.247 / 10.640 \\
+Q4, colecci\'on & COLLSCAN / 239.946 / 170 & COLLSCAN / 239.946 / 176 \\
+Q4, embebida & COLLSCAN / 239.946 / 2.428 & COLLSCAN / 239.946 / 665 \\
+\botrule
+\end{tabular*}
+\end{table}
+
+\begin{figure}[!t]
+\centering
+\figuraopcional{figuras/benchmark_consultas.png}{\columnwidth}{subir la figura del benchmark de consultas}
+\caption{Tiempo total de consulta por estrategia y variante (media $\pm$ desviaci\'on est\'andar, $n = 3$, escala logar\'itmica). Q1 y Q3 incluyen las 50 b\'usquedas.\label{fig:bench_consultas}}
+\textoalternativo{Gr\'afico de barras agrupadas con las consultas Q1 a Q4 en el eje horizontal y el tiempo total en segundos, en escala logar\'itmica, en el vertical; cada consulta tiene cuatro barras: colecci\'on con y sin \'indice y embebida con y sin \'indice. En Q1 y Q3 las barras sin \'indice son unas mil veces m\'as altas que las barras con \'indice. En Q2 las cuatro barras son parecidas, de unos 12~s. En Q4 las barras de la estrategia embebida son m\'as altas que las de la colecci\'on.}
+\end{figure}
+
+\paragraph{B\'usquedas por secuencia (Q1 y Q3).}
+Con \'indice, ambas estrategias acceden directamente a los documentos de la secuencia (IXSCAN) y obtienen tiempos equivalentes: 0,114 frente a 0,115 ms por b\'usqueda en Q1, y 0,372 frente a 0,318 ms en Q3. En Q3, la estrategia embebida lee un documento en lugar de seis, pero la diferencia es menor que la variaci\'on entre repeticiones. Sin \'indice, MongoDB recorre la colecci\'on en cada b\'usqueda y los tiempos aumentan a cientos de milisegundos; en este caso la embebida es m\'as r\'apida (360 frente a 596 ms en Q1, y 267 frente a 540 ms en Q3), porque tiene seis veces menos documentos y, en Q3, detiene el recorrido al encontrar el documento. En ambas consultas, el \'indice influye mucho m\'as que la estrategia de almacenamiento: acelera las b\'usquedas entre unas 840 y 5.000 veces.
+
+\paragraph{Heatmap de 2-mers (Q2).}
+Las cuatro combinaciones realizan el mismo c\'alculo y solo difieren en la lectura: la colecci\'on con \'indice lee \'unicamente los 239.946 documentos de k = 2 mediante el \'indice \texttt{\{k, te\_order\}}, mientras que la embebida, que no puede filtrar por k, lee los 239.946 documentos completos. Aun as\'i, el tiempo total fue similar en todos los casos (entre 11,3 y 12,4 s en promedio), con una variaci\'on alta entre repeticiones (de 3,5 a 16,7 s en una misma combinaci\'on). Con los datos en memoria, el costo dominante es el c\'alculo de la agregaci\'on (convertir conteos en frecuencias, separar con \texttt{\$unwind} unos 3,8 millones de elementos y sumarlos por orden), que es id\'entico en ambas estrategias. La diferencia aparece en la etapa de lectura: seg\'un \texttt{explain}, la colecci\'on con \'indice ley\'o los datos en 4,0 s, frente a 15 a 17 s en las dem\'as combinaciones, cifra que se toma como un indicio por provenir de una sola ejecuci\'on previa al calentamiento.
+
+\paragraph{Consulta sin k-mers (Q4).}
+En Q4 ning\'un \'indice es aplicable y las cuatro combinaciones recorren los 239.946 documentos. La colecci\'on \texttt{tes} resolvi\'o la consulta en 128 a 138 ms, mientras que \texttt{tes\_embebidos} tard\'o entre 352 y 581 ms, es decir, entre 2,5 y 4,5 veces m\'as. La diferencia se debe al tama\~no de los documentos: unos 34.000 bytes en promedio en la estrategia embebida, frente a unos 300 en \texttt{tes}, que deben leerse completos aunque la consulta no use los k-mers.
+
+% =============================================================================
+% 5. DISCUSION
+% RESPONSABLE: Juan Esteban (con aportes de Thomas ya escritos) | CONTENIDO: ventajas y
+% limitaciones, que cambiaria si los datos crecieran 10 o 100 veces, amenazas a la
+% validez | PALABRAS: 500
+% =============================================================================
+\section{Discusi\'on}
+
+\paragraph{Ventajas y limitaciones seg\'un las consultas.}
+Las consultas respaldan las decisiones del modelo. Copiar \texttt{species\_name}, \texttt{kingdom}, \texttt{phylum} y \texttt{source} en \texttt{tes} permiti\'o resolver sin \texttt{\$lookup} las consultas 1--3, 5--7, 9 y 13, y cuando la uni\'on fue necesaria, agrupar antes de unir la hizo unas 42 veces m\'as r\'apida (consulta~12). Los \'indices sobre \texttt{pdb\_id}, sobre especie y superfamilia y sobre \texttt{pdb\_id} y k hicieron que las b\'usquedas 8, 9 y 15 leyeran solo los documentos devueltos. La principal limitaci\'on apareci\'o en la propia~2: como \texttt{kmers} solo copia \texttt{te\_order}, conocer el reino exige un \texttt{\$lookup} por TE, y la consulta tard\'o 211~s. Si ese uso fuera frecuente, convendr\'ia copiar tambi\'en \texttt{kingdom} en \texttt{kmers}. Guardar \texttt{species\_name} tal como viene en el FASTA mantiene id\'enticos los encabezados de las bibliotecas, pero obliga a normalizar el nombre para filtrar en 4 especies (consulta~9).
+
+\paragraph{Estrategia de almacenamiento seg\'un el tipo de uso.}
+Los resultados muestran que la conveniencia de cada estrategia depende del tipo de consulta. En las b\'usquedas de k-mers por secuencia, ambas son equivalentes cuando existe el \'indice adecuado, por lo que lo determinante es indexar los campos de b\'usqueda. En el heatmap empatan con el volumen actual, aunque la colecci\'on aparte lee menos datos. La diferencia clara aparece en las consultas que no usan k-mers, donde la estrategia embebida es entre 2,5 y 4,5 veces m\'as lenta porque arrastra los perfiles en cada documento. Como la mayor\'ia de las consultas del proyecto (las consultas 1 a 14) no usan k-mers, se mantiene la colecci\'on aparte. La alternativa embebida solo ofrece una carga un 5,5~\% m\'as r\'apida (186,8 $\pm$ 1,8 s frente a 197,7 $\pm$ 2,0 s) e \'indices unas 11 veces m\'as peque\~nos (5,2 frente a 57,7 MB), con un espacio de datos pr\'acticamente igual (3.037,1 frente a 3.030,6 MB), ventajas que no compensan la penalizaci\'on en el resto de consultas.
+
+\paragraph{Crecimiento de los datos.}
+Con el volumen actual, cada estrategia ocupa unos 8 GB sin comprimir y buena parte de los datos cabe en la memoria del equipo de pruebas. Si los datos crecieran 10 o 100 veces, dejar\'ian de caber en memoria y la lectura desde disco pasar\'ia a dominar el tiempo de las consultas que recorren toda la base. En ese escenario, es esperable que la colecci\'on aparte con \'indice, cuya etapa de lectura fue unas 4 veces m\'as r\'apida en el heatmap, supere a la embebida, y que la penalizaci\'on de la embebida en consultas sin k-mers aumente. Esta hip\'otesis no se midi\'o en este trabajo.
+
+\paragraph{Limitaciones del experimento.}
+\begin{itemize}
+\item Variaci\'on por la cach\'e. En Q2 y en las variantes sin \'indice, los tiempos variaron mucho entre repeticiones (en Q2, entre 3,5 y 16,7 s en una misma combinaci\'on). Al alternar dos colecciones de unos 8 GB sin comprimir, una desplaza a la otra de la memoria, y cada medici\'on depende de si los datos ya estaban cargados.
+\item Pocas repeticiones. Tres repeticiones son pocas para conclusiones firmes cuando la variaci\'on es tan alta.
+\item Un solo equipo. Todas las mediciones se hicieron en una misma m\'aquina (Apple M5, 24 GB); en equipos con menos memoria el efecto de la cach\'e ser\'ia mayor.
+\item \texttt{explain} en fr\'io. Los tiempos de lectura de \texttt{explain} provienen de una sola ejecuci\'on previa al calentamiento, por lo que solo se usan como indicio.
+\item Formato no comparado. El benchmark compara la ubicaci\'on de los k-mers (colecci\'on aparte frente a embebidos), no su formato; el ahorro del diccionario disperso frente a un arreglo denso no se midi\'o.
+\end{itemize}
+
+\paragraph{Amenazas a la validez de los resultados biol\'ogicos.}
+Los registros son consensos de familias y no copias en el genoma, as\'i que los conteos miden familias anotadas. El tama\~no de las bibliotecas var\'ia mucho (326 especies tienen un solo TE) y determina la diversidad observada (propia~1). Las dos fuentes no son comparables en lo taxon\'omico, porque casi todas las especies de Dfam son animales (consulta~13). Adem\'as, hay indicios de cortes artificiales de longitud y de errores de clasificaci\'on en las bibliotecas de origen (consultas 5, 7 y 14), que se documentaron pero no se corrigieron.
+
+% =============================================================================
+% 6. CONCLUSIONES
+% RESPONSABLE: Thomas (borrador ya escrito) + todo el equipo | CONTENIDO: completar con
+% los resultados de las consultas y las figuras | PALABRAS: 200
+% =============================================================================
+\section{Conclusiones}
+
+% --- BORRADOR DE THOMAS ---
+Se dise\~n\'o e implement\'o en MongoDB un modelo de datos que integra las 239.946 secuencias de elementos transponibles de PanTEon Database v1.6.1, la taxonom\'ia de sus 2.790 especies y los perfiles de k-mers de k = 1 a 6 de cada secuencia. El modelo organiza la informaci\'on en cuatro colecciones: \texttt{especies}, \texttt{tes}, \texttt{secuencias} y \texttt{kmers}. Combina referencias, para mantener la taxonom\'ia en un solo lugar y permitir uniones con \texttt{\$lookup}, con la copia de los campos m\'as consultados, para resolver sin uniones las consultas por especie y por reino.
+
+La exploraci\'on de los datos mostr\'o que las fuentes eran consistentes en lo esencial, pero con particularidades que hab\'ia que documentar: identificadores con formatos distintos seg\'un la biblioteca de origen, superfamilias que repiten el nombre del orden, secuencias mayoritariamente en min\'usculas, presencia de N y nombres de especie que solo difer\'ian en la puntuaci\'on. Todas se resolvieron sin modificar los datos originales.
+
+La evaluaci\'on experimental mostr\'o que guardar los k-mers en una colecci\'on aparte no tiene costo apreciable en carga ni en espacio frente a embeberlos, y que, con los \'indices adecuados, ambas estrategias son equivalentes en las b\'usquedas por secuencia. La colecci\'on aparte evita, en cambio, que las consultas que no usan k-mers, la mayor\'ia en este proyecto, carguen con el peso de los perfiles, lo que las hace entre 2,5 y 4,5 veces m\'as r\'apidas. Como trabajo futuro, queda evaluar el comportamiento con vol\'umenes que no quepan en memoria y comparar formatos de almacenamiento de los perfiles.
+
+Las consultas mostraron que el modelo responde todas las preguntas planteadas, desde los conteos globales hasta la generaci\'on de bibliotecas \texttt{.fasta} por especie y por reino. Los campos copiados y los \'indices permiten resolver la mayor\'ia sin uniones y leyendo solo los documentos necesarios. Los datos muestran diferencias claras entre reinos: las plantas est\'an dominadas por LTR, los animales por LINE, y los hongos tienen m\'as GC y menos empobrecimiento de CpG. Estas comparaciones, sin embargo, dependen del tama\~no y del origen de cada biblioteca.
+
+% =============================================================================
+% DISPONIBILIDAD DE DATOS Y CODIGO
+% RESPONSABLE: Thomas (ya escrito) | CONTENIDO: repositorio, Zenodo, como reproducir
+% | PALABRAS: 120
+% =============================================================================
+\section{Disponibilidad de datos y c\'odigo}
+
+El c\'odigo, los notebooks, los resultados de los experimentos y la documentaci\'on del modelo est\'an disponibles en el repositorio del proyecto: \url{https://github.com/ThomasToro/transposable-elements-db}. Los datos de entrada son los archivos \texttt{PanTEon\_\allowbreak Database\_\allowbreak v1.6.1.fasta} y \texttt{PanTEon\_\allowbreak Database\_\allowbreak metadata\_\allowbreak v1.6.1.csv} de PanTEon Database v1.6.1, disponibles en Zenodo (\url{https://zenodo.org/records/19372616}) bajo licencia CC BY 4.0 \citep{panteon2026database}.
+
+Para reproducir los resultados, el archivo \texttt{README.md} describe la instalaci\'on del entorno (\texttt{environment.yml}, con Python 3.11 y MongoDB 7.0), la descarga de los datos y el orden de ejecuci\'on de los notebooks. La base completa se reconstruye ejecutando en orden los notebooks 01, 02 y 03, o restaurando los respaldos de MongoDB descritos en \texttt{resultados/dump\_info.md}. Las funciones del pipeline cuentan con pruebas automatizadas (\texttt{python -m pytest tests/}), y los benchmarks se encuentran en los notebooks \texttt{06\_benchmark\_carga\_espacio.ipynb} y \texttt{06\_benchmark\_consultas.ipynb}.
+
+% Bioinformatics pide ademas archivar el codigo (Zenodo, Figshare o Software Heritage).
+% Pendiente del equipo: si se archiva en Zenodo, agregar aqui el DOI de la version entregada.
+
+% =============================================================================
+% DECLARACIONES OBLIGATORIAS DE LA REVISTA
+% RESPONSABLE: Isabela
+% =============================================================================
+
+% Taxonomia CRediT (https://credit.niso.org/), segun la tabla de responsabilidades del equipo.
+\section{Contribuciones de los autores}
+
+T.A.T.H.: conceptualizaci\'on, metodolog\'ia, curaci\'on de datos (FASTA), software, investigaci\'on (benchmark de consultas), visualizaci\'on (modelo de datos y benchmark de consultas), administraci\'on del proyecto, redacci\'on (borrador original). J.S.A.R.: curaci\'on de datos (CSV y cruce), software (pipeline de carga y k-mers), investigaci\'on (benchmark de carga y espacio), visualizaci\'on (benchmark de carga y espacio), redacci\'on (borrador original). J.E.H.M.: software (consultas), an\'alisis formal (consultas), redacci\'on (borrador original). I.Q.M.: software (bibliotecas), visualizaci\'on (figuras de los datos), redacci\'on (borrador original, revisi\'on y edici\'on).
+
+\section{Financiaci\'on}
+
+Este trabajo no recibi\'o financiaci\'on.
+
+\section{Conflicto de intereses}
+
+Los autores declaran no tener conflicto de intereses.
+
+\section{Agradecimientos}
+
+Al docente Sim\'on Gaviria Orrego, por la orientaci\'on durante el curso de Bases de Datos~II.
+
+% =============================================================================
+% REFERENCIAS
+% RESPONSABLE: Isabela | archivo references.bib (estilo oup-abbrvnat, autor-anio)
+% =============================================================================
+\bibliographystyle{oup-abbrvnat}
+\bibliography{references}
+
+\end{document}
